@@ -1,5 +1,3 @@
-const fs = require('node:fs');
-const path = require('node:path');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord.js');
 const { getCommands } = require('./fileCommands');
