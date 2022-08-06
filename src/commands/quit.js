@@ -7,6 +7,7 @@ const {
 
 const cmd = require('../pzcommands');
 
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("quit")
@@ -41,7 +42,7 @@ module.exports = {
 
                 const mins = interaction.options.getNumber('minutes');
                 cmd.servermsg(rconConnection, `Server shutting down in ${mins} ${mins != 1 ? "minutes": "minute"}`);
-                console.log(`> Shutting down in ${(mins * 60) * 1000}ms`);
+                console.log(`Shutting down in ${(mins * 60) * 1000}ms`);
                 await interaction.reply({
                     content: `Quitting in ${mins} ${mins != 1 ? "minutes": "minute"}`,
                     ephemeral: false
@@ -102,7 +103,7 @@ module.exports = {
                     timers.clearShutdownTimers();
 
                     cmd.servermsg(rconConnection, "Server shutdown cancelled");
-                    console.log("> Cancelled server shutdown");
+                    console.log("Cancelled server shutdown");
                     await interaction.reply({
                         content: "Cancelled server quit"
                     });

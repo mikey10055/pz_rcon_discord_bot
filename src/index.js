@@ -1,19 +1,47 @@
 require('dotenv').config();
-const wait = require('node:timers/promises').setTimeout;
 
 const readline = require("readline");
 
 const Rcon = require('rcon');
-const {
-    Client,
-    GatewayIntentBits,
-    Collection
-} = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 
 const register = require("../src/deployCommands");
-const {
-    setCommands
-} = require("../src/fileCommands");
+const { setCommands } = require("../src/fileCommands");
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+const prompt = (query) => new Promise((resolve) => rl.question(query, resolve));
+
+const log = (data) => {
+    newLine();
+    console.log(data);
+    newLine();
+}
+
+const newLine = (async () => {
+    try {
+        const txt = await prompt('>: ');
+        if (txt === "exit") {
+            process.exit(0);
+        } else if (txt === "connect") {
+            rconConnection.connect();
+            newLine();
+        } else if (txt === "disconnect") {
+            rconConnection.disconnect();
+            newLine();
+        } else {
+            rconConnection.send(txt);
+            newLine();
+        }
+    } catch (e) {
+        console.error("unable to prompt", e)
+        newline();
+    }
+});
+
+rl.on('close', () => process.exit(0));
 
 const {
     RCON_HOST,
@@ -24,7 +52,6 @@ const {
 
 let ConnectedToRconServer = false;
 
-let shutdownTimer;
 let shutdownTimers = [];
 
 const setShutdownTimers = (timers) => {
@@ -45,14 +72,15 @@ const setLastInteraction = (inter) => {
 const client = new Client({
     intents: Object.values(GatewayIntentBits)
 });
+
 client.commands = new Collection();
 setCommands(client);
 
 const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
 
 client.on('ready', () => {
-    console.log(`> Connected to Discord as ${client.user.tag}!`);
-    neline();
+    log(`Connected to Discord as ${client.user.tag}!`);
+    
     rconConnection.connect();
 });
 
@@ -85,7 +113,8 @@ client.on('interactionCreate', async interaction => {
 
 rconConnection.on('auth', function () {
 
-        console.log(`> Connected to ${RCON_HOST}:${RCON_PORT}`);
+        log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
+        log("(type exit to quit)");
         ConnectedToRconServer = true;
 
         if (lastInteraction) {
@@ -97,16 +126,20 @@ rconConnection.on('auth', function () {
 
             lastInteraction = null;
         }
-        neline();
-
+        
     })
     .on("connect", () => {
-        console.log(`> Connecting to ${RCON_HOST}:${RCON_PORT}...`);
+        log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
+    })
+    .on("server", (str) => {
+        if (str.length > 0) {
+            log("[Rcon Server]: " + str);
+        }
     })
     .on('response', function (str) {
         if (str.length > 0) {
-            console.log("Response: " + str);
-            neline();
+            log("[Rcon Response]: " + str);
+            
             if (lastInteraction) {
                 lastInteraction.editReply(str);
 
@@ -115,8 +148,8 @@ rconConnection.on('auth', function () {
         }
 
     }).on('error', function (err) {
-        console.log(err);
-        neline();
+        log(`[Rcon Error]: ${err.code}`);
+        
         if (lastInteraction) {
             lastInteraction.editReply({
                 content: "Sorry, could not complete that action.",
@@ -126,10 +159,10 @@ rconConnection.on('auth', function () {
             lastInteraction = null;
         }
     }).on('end', function () {
-        console.log("> Connection closed");
+        log("Connection closed");
         ConnectedToRconServer = false;
         clearShutdownTimers(shutdownTimers);
-        console.log("> Lost connection to server, type 'exit' to shutdown");
+        log("Lost connection to server, type 'exit' to shutdown");
 
         if (lastInteraction) {
 
@@ -145,32 +178,6 @@ rconConnection.on('auth', function () {
         }
 
     });
-
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-const prompt = (query) => new Promise((resolve) => rl.question(query, resolve));
-
-
-const neline = (async () => {
-    try {
-        const txt = await prompt('> (type "exit" to quit): ');
-        if (txt === "exit") {
-            process.exit(0);
-        } else {
-            rconConnection.send(txt);
-            neline();
-        }
-    } catch (e) {
-        console.errror("unable to prompt", e)
-        neline();
-    }
-})
-
-//when done reading prompt exit program 
-rl.on('close', () => process.exit(0));
 
 (async () => {
     await register();
