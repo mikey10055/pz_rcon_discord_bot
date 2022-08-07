@@ -12,16 +12,7 @@ module.exports = {
         .setName("players")
         .setDescription("List all connected players.")
         .setDefaultMemberPermissions(0),
-    async execute(interaction, ConnectedToRconServer, rconConnection, setLastInteraction) {
-        if (!ConnectedToRconServer) {
-            notConnectedToRcon(interaction);
-        } else {
-            setLastInteraction(interaction);
-            await interaction.deferReply({
-                ephemeral: false
-            });
-
+    async execute(interaction, rconConnection, timers, log) {
             cmd.players(rconConnection);
-        }
     },
 };

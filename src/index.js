@@ -7,6 +7,7 @@ const { Client, GatewayIntentBits, Collection } = require('discord.js');
 
 const register = require("../src/deployCommands");
 const { setCommands } = require("../src/fileCommands");
+const { replyToInteraction } = require('./helper');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -22,14 +23,22 @@ const log = (data) => {
 
 const newLine = (async () => {
     try {
-        const txt = await prompt('>: ');
+        const txt = await prompt(`>: `);
         if (txt === "exit") {
             process.exit(0);
         } else if (txt === "connect") {
-            rconConnection.connect();
+            if (!rconConnection.hasAuthed) {
+                rconConnection.connect();
+            } else {
+                log("Already connected");
+            }
             newLine();
         } else if (txt === "disconnect") {
-            rconConnection.disconnect();
+            if (rconConnection.hasAuthed) {
+                rconConnection.disconnect();
+            } else {
+                log("Not connected");
+            }
             newLine();
         } else {
             rconConnection.send(txt);
@@ -50,8 +59,6 @@ const {
     DISCORD_TOKEN
 } = process.env;
 
-let ConnectedToRconServer = false;
-
 let shutdownTimers = [];
 
 const setShutdownTimers = (timers) => {
@@ -61,12 +68,6 @@ const setShutdownTimers = (timers) => {
 const clearShutdownTimers = () => {
     shutdownTimers.forEach(t => clearTimeout(t));
     shutdownTimers = [];
-}
-
-let lastInteraction;
-
-const setLastInteraction = (inter) => {
-    lastInteraction = inter;
 }
 
 const client = new Client({
@@ -80,53 +81,89 @@ const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
 
 client.on('ready', () => {
     log(`Connected to Discord as ${client.user.tag}!`);
-    
+
     rconConnection.connect();
 });
 
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
 
-    const command = client.commands.get(interaction.commandName);
+    client.on('interactionCreate', async interaction => {
+        if (!interaction.isChatInputCommand()) return;
 
-    if (!command) return;
+        const command = client.commands.get(interaction.commandName);
 
-    try {
-        await command.execute(interaction, ConnectedToRconServer, rconConnection, setLastInteraction, {
-            timers: shutdownTimers,
-            setShutdownTimers,
-            clearShutdownTimers,
-            areTimersActive: () => {
-                const res = shutdownTimers.filter(t => t !== undefined || t !== null).length > 0;
-                return res;
+        if (!command) return;
+
+        try {
+            const enteredOptions = interaction.options._hoistedOptions.map(op => `${op.name}:${op.value}`).join(" ");
+            log(
+                `[Discord]: ${interaction.member.user.tag} executed /${interaction.commandName} ${enteredOptions}`
+            );
+            if (command.beforeExecute) {
+                command.beforeExecute(interaction);
+            } else {
+                await interaction.deferReply({
+                    ephemeral: false
+                });
             }
-        });
-    } catch (error) {
-        console.error(error);
-        await interaction.reply({
-            content: 'There was an error while executing this command!',
-            ephemeral: true
-        });
-    }
+            const rc = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+            rc.on("auth", async () => {
+                await command.execute(interaction, rc, {
+                    timers: shutdownTimers,
+                    setShutdownTimers,
+                    clearShutdownTimers,
+                    areTimersActive: () => {
+                        const res = shutdownTimers.filter(t => t !== undefined || t !== null).length > 0;
+                        return res;
+                    }
+                }, log);
+            });
+            rc.on("response", async (response) => {
+                if (response.length > 0) {
+                    log(`[RCON Response]: ${response}`);
+                    if (command.reply) {
+                        command.reply(interaction, response);
+                        rc.disconnect();
+                        return;
+                    } 
+                    await interaction.editReply({
+                        content: response,
+                        ephemeral: false
+                    });
+                    rc.disconnect();
+                }
+            });
+            rc.on("error", (err) => {
+                log(`[RCON Error]: ${err.code}`);
+                if (err.code === "ECONNREFUSED") {
+                    replyToInteraction(interaction, {
+                        content: "Server connection refused, please make sure the server is avaliable."
+                    });
+                    rc.disconnect();
+                    return;
+                }
+                replyToInteraction(interaction, {
+                    content: "Sorry, could not complete that acton",
+                    ephemeral: false
+                });
+                rc.disconnect();
+            })
 
-});
+            rc.connect();
+
+        } catch (error) {
+            console.log(error);
+            await interaction.reply({
+                content: 'There was an error while executing this command!',
+                ephemeral: false
+            });
+        }
+
+    });
 
 rconConnection.on('auth', function () {
 
         log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
-        log("(type exit to quit)");
-        ConnectedToRconServer = true;
-
-        if (lastInteraction) {
-
-            lastInteraction.editReply({
-                content: "Connected",
-                ephemeral: false
-            });
-
-            lastInteraction = null;
-        }
-        
+        log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
     })
     .on("connect", () => {
         log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
@@ -139,44 +176,18 @@ rconConnection.on('auth', function () {
     .on('response', function (str) {
         if (str.length > 0) {
             log("[Rcon Response]: " + str);
-            
-            if (lastInteraction) {
-                lastInteraction.editReply(str);
-
-                lastInteraction = null;
-            }
         }
 
     }).on('error', function (err) {
         log(`[Rcon Error]: ${err.code}`);
-        
-        if (lastInteraction) {
-            lastInteraction.editReply({
-                content: "Sorry, could not complete that action.",
-                ephemeral: true
-            });
 
-            lastInteraction = null;
+        if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
+            rconConnection.disconnect();
         }
+
     }).on('end', function () {
         log("Connection closed");
-        ConnectedToRconServer = false;
-        clearShutdownTimers(shutdownTimers);
         log("Lost connection to server, type 'exit' to shutdown");
-
-        if (lastInteraction) {
-
-            if (lastInteraction.commandName === "disconnect") {
-                lastInteraction.editReply({
-                    content: "Disconnected from server",
-                    ephemeral: true
-                });
-                return;
-            }
-
-            lastInteraction = null;
-        }
-
     });
 
 (async () => {

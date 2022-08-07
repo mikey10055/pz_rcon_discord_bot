@@ -1,17 +1,15 @@
 const {
     SlashCommandBuilder
 } = require('discord.js');
-const { notConnectedToRcon } = require('../helper');
 const cmd = require('../pzcommands');
 
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("save")
-        .setDescription("Save the current world.")
+        .setName("chopper")
+        .setDescription("Place a helicopter event on a random player.")
         .setDefaultMemberPermissions(0),
     async execute(interaction, rconConnection, timers, log) {
-
-            cmd.save(rconConnection);
+        cmd.chopper(rconConnection);
     },
 };

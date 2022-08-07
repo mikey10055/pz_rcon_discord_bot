@@ -12,25 +12,16 @@ module.exports = {
         .setName("teleportto")
         .setDescription("Teleport player to x,y,z coordinates. Once teleported, wait for the map to appear.")
         .addStringOption(option => option.setName("player").setDescription("Enter player to teleport").setRequired(true))
-        .addNumberOption(option => option.setName("x").setDescription("x coordinate").setRequired(true))
-        .addNumberOption(option => option.setName("y").setDescription("y coordinate").setRequired(true))
-        .addNumberOption(option => option.setName("z").setDescription("z coordinate").setRequired(true))
+        .addIntegerOption(option => option.setName("x").setDescription("x coordinate").setRequired(true))
+        .addIntegerOption(option => option.setName("y").setDescription("y coordinate").setRequired(true))
+        .addIntegerOption(option => option.setName("z").setDescription("z coordinate").setRequired(true))
         .setDefaultMemberPermissions(0),
-    async execute(interaction, ConnectedToRconServer, rconConnection, setLastInteraction) {
-        if (!ConnectedToRconServer) {
-            notConnectedToRcon(interaction);
-        } else {
+    async execute(interaction, rconConnection, timers, log) {
             const p = interaction.options.getString('player');
-            const x = interaction.options.getNumber('x');
-            const y = interaction.options.getNumber('y');
-            const z = interaction.options.getNumber('z');
+            const x = interaction.options.getInteger('x');
+            const y = interaction.options.getInteger('y');
+            const z = interaction.options.getInteger('z');
 
-            setLastInteraction(interaction);
-            await interaction.deferReply({
-                ephemeral: false
-            });
             cmd.teleportto(rconConnection, p, x, y, z);
-
-        }
     },
 };

@@ -26,20 +26,11 @@ module.exports = {
                 )
             )
             .setDefaultMemberPermissions(0),
-    async execute(interaction, ConnectedToRconServer, rconConnection, setLastInteraction) {
-        if (!ConnectedToRconServer) {
-            notConnectedToRcon(interaction);
-        } else {
-            setLastInteraction(interaction);
-            await interaction.deferReply({
-                ephemeral: false
-            });
+    async execute(interaction, rconConnection, timers, log) {
 
-            const user = interaction.options.getString('player');
-            const level = interaction.options.getString('level');
+        const user = interaction.options.getString('player');
+        const level = interaction.options.getString('level');
 
-            cmd.setaccesslevel(rconConnection, user, level);
-
-        }
+        cmd.setaccesslevel(rconConnection, user, level);
     },
 };

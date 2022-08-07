@@ -25,8 +25,12 @@ const cmd = {
         connection.send(`adduser "${user}" "${pass}"`);
     },
 
-    addvehicle: (connection, vehicle, position) => {
-        connection.send(`addvehicle "${vehicle}" ${Array.isArray(position) ? position.join(",") : `"${position}"`}`)
+    addvehicleplayer: (connection, vehicle, player) => {
+        connection.send(`addvehicle "${vehicle}" "${player}"`)
+    },
+
+    addvehiclexyz: (connection, vehicle, x, y, z) => {
+        connection.send(`addvehicle "${vehicle}" ${x},${y},${z}`)
     },
 
     addxp: (connection, player, perk, xp) => {

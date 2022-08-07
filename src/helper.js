@@ -1,3 +1,11 @@
+const {
+    RCON_HOST,
+    RCON_PORT,
+    RCON_PASS
+} = process.env;
+
+const Rcon = require('rcon');
+
 const hasRole = (member, role) => member.roles.cache.has(role);
 
 const notConnectedToRcon = async (interaction) => {
@@ -7,8 +15,48 @@ const notConnectedToRcon = async (interaction) => {
     });
 }
 
+const replyToInteraction = async (interaction, data) => {
+    if (interaction.deferred) {
+        interaction.editReply(data);
+    } else {
+        interaction.reply(data);
+    }
+}
+
+const triggerCommand = (command) => {
+    const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+    rconConnection.on('auth', function () {
+            command(rconConnection);
+        })
+        .on("connect", () => {
+
+        })
+        .on("server", (str) => {
+
+        })
+        .on('response', function (str) {
+            if (str.length > 0) {
+                console.log(`>: ${str}`);
+                rconConnection.disconnect();
+            }
+        }).on('error', function (err) {
+            console.log(`[Rcon Error]: ${err.code}`);
+
+            if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
+                rconConnection.disconnect();
+            }
+
+        }).on('end', function () {
+            console.log(">: Connection closed")
+        });
+
+        rconConnection.connect();
+}
+
 
 module.exports = {
     hasRole,
-    notConnectedToRcon
+    notConnectedToRcon,
+    replyToInteraction,
+    triggerCommand
 }

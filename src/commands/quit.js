@@ -2,7 +2,7 @@ const {
     SlashCommandBuilder
 } = require('discord.js');
 const {
-    notConnectedToRcon
+    notConnectedToRcon, triggerCommand
 } = require('../helper');
 
 const cmd = require('../pzcommands');
@@ -26,14 +26,11 @@ module.exports = {
             .setDescription("Cancel save and quit.")
         )
         .setDefaultMemberPermissions(0),
-    async execute(interaction, ConnectedToRconServer, rconConnection, setLastInteraction, timers) {
-        if (!ConnectedToRconServer) {
-            notConnectedToRcon(interaction);
-        } else {
+    async execute(interaction, rconConnection, timers, log) {
             const sub = interaction.options.getSubcommand();
             if (sub === "in") {
                 if (timers.areTimersActive()) {
-                    await interaction.reply({
+                    await interaction.editReply({
                         content: 'Already shutting down',
                         ephemeral: false
                     });
@@ -42,8 +39,8 @@ module.exports = {
 
                 const mins = interaction.options.getNumber('minutes');
                 cmd.servermsg(rconConnection, `Server shutting down in ${mins} ${mins != 1 ? "minutes": "minute"}`);
-                console.log(`Shutting down in ${(mins * 60) * 1000}ms`);
-                await interaction.reply({
+                log(`Shutting down in ${(mins * 60) * 1000}ms`);
+                await interaction.editReply({
                     content: `Quitting in ${mins} ${mins != 1 ? "minutes": "minute"}`,
                     ephemeral: false
                 });
@@ -51,31 +48,31 @@ module.exports = {
                 timers.setShutdownTimers([
                     ((mins * 60) * 1000) - (60000 * 10) > 0 ? 
                         setTimeout(() => {
-                            cmd.servermsg(rconConnection, `Server shutting down in 10 minutes`);
+                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 10 minutes`))
                         }, ((mins * 60) * 1000) - (60000 * 10))
                     : null,
                     ((mins * 60) * 1000) - (60000 * 5) > 0 ?
                         setTimeout(() => {
-                            cmd.servermsg(rconConnection, `Server shutting down in 5 minutes`);
+                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 5 minutes`))
                         }, ((mins * 60) * 1000) - (60000 * 5))
                     : null,
                     ((mins * 60) * 1000) - (60000 * 3)  > 0 ?
                         setTimeout(() => {
-                            cmd.servermsg(rconConnection, `Server shutting down in 3 minutes`);
+                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 3 minutes`))
                         }, ((mins * 60) * 1000) - (60000 * 3)) 
                     : null,
                     ((mins * 60) * 1000) - 60000 > 0 ?
                         setTimeout(() => {
-                            cmd.servermsg(rconConnection, `Server shutting down in 1 minute`);
+                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 1 minute`))
                         }, ((mins * 60) * 1000) - 60000)
                     : null,
                     ((mins * 60) * 1000) - 30000 > 0 ? 
                         setTimeout(() => {
-                            cmd.servermsg(rconConnection, `Server shutting down in 30 seconds`);
+                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 30 seconds`))
                         }, ((mins * 60) * 1000) - 30000)
                     : null,
                     setTimeout(async () => {
-                        cmd.quit(rconConnection);
+                        triggerCommand((rcon) => { cmd.quit(rcon); });
                         await interaction.followUp({
                             content: 'Quitting',
                             ephemeral: false
@@ -90,7 +87,7 @@ module.exports = {
             if (sub === "now") {
                 timers.clearShutdownTimers();
                 cmd.quit(rconConnection);
-                await interaction.reply({
+                await interaction.editReply({
                     content: 'Quitting',
                     ephemeral: false
                 });
@@ -103,12 +100,12 @@ module.exports = {
                     timers.clearShutdownTimers();
 
                     cmd.servermsg(rconConnection, "Server shutdown cancelled");
-                    console.log("Cancelled server shutdown");
-                    await interaction.reply({
+                    log("Cancelled server shutdown");
+                    await interaction.editReply({
                         content: "Cancelled server quit"
                     });
                 } else {
-                    await interaction.reply({
+                    await interaction.editReply({
                         content: "Nothing to cancel.",
                         ephemeral: true
                     });
@@ -116,6 +113,5 @@ module.exports = {
 
                 return;
             }
-        }
     },
 };
