@@ -31,7 +31,8 @@ const {
     COMMAND_UNBANID_ENABLED,
     COMMAND_UNBANUSER_ENABLED,
     COMMAND_VOICEBAN_ENABLED,
-    COMMAND_THUNDER_ENABLED
+    COMMAND_THUNDER_ENABLED,
+    COMMAND_HEAL_ENABLED
 } = process.env;
 
 const getCommand = (filename) => {
@@ -214,6 +215,11 @@ const getCommands = () => {
     if (COMMAND_THUNDER_ENABLED === "true") {
         commands.push(
             getCommand("thunder")
+        );
+    }
+    if (COMMAND_HEAL_ENABLED === "true") {
+        commands.push(
+            getCommand("heal")
         );
     }
 

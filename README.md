@@ -59,6 +59,10 @@ COMMAND_UNBANID_ENABLED="true"
 COMMAND_UNBANUSER_ENABLED="true"
 COMMAND_VOICEBAN_ENABLED="true"
 
+
+# Extra commands not rcon commands
+COMMAND_HEAL_ENABLED="true"
+
 ```
 `DISCORD_CLIENT_ID` and `DISCORD_TOKEN` can be found after creating a bot [here](https://discord.com/developers/applications)
 
@@ -68,3 +72,16 @@ Once all variables are set in the .env, inside a terminal type the following
 ```
 npm start
 ```
+
+## Managing permissions
+
+All permissions for the commands are handled by Discord, under the interactions tab in server settings. By default all commands require the user to have `Administrator` permission.
+
+The interactions for the bot will be under tha name of the bot you created.
+
+
+![interactions image](https://github.com/mikey10055/pz_rcon_discord_bot/blob/main/interactions.jpg?raw=true)
+
+All of the commands will appear once you have run `npm start`
+
+![slashcommands image](https://github.com/mikey10055/pz_rcon_discord_bot/blob/main/slashcommands.jpg?raw=true)
