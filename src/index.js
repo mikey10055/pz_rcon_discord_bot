@@ -9,6 +9,10 @@ const register = require("../src/deployCommands");
 const { setCommands } = require("../src/fileCommands");
 const { replyToInteraction } = require('./helper');
 
+const {
+    serverOnlineMessage
+} = require("./messages/server");
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -35,6 +39,8 @@ const newLine = (async () => {
             newLine();
         } else if (txt === "disconnect") {
             if (rconConnection.hasAuthed) {
+                shouldAutoReconnect = false;
+                shouldShowMessage = false;
                 rconConnection.disconnect();
             } else {
                 log("Not connected");
@@ -56,8 +62,30 @@ const {
     RCON_HOST,
     RCON_PORT,
     RCON_PASS,
-    DISCORD_TOKEN
+    DISCORD_TOKEN,
+    DISCORD_AUTORECONNECT,
+    DISCORD_AUTORECONNECT_WAIT,
+    DISCORD_AUTORECONNECT_INTERVAL,
+    DISCORD_MAX_AUTORECONNECT_ATTEMPTS
 } = process.env;
+
+
+let shouldAutoReconnect = DISCORD_AUTORECONNECT === "true";
+let hasAutoReconnectWaited = false;
+let autoReconnectIntervalTimer;
+let autoReconnectWaitTimer;
+let maxAutoReconnectAttempts = DISCORD_MAX_AUTORECONNECT_ATTEMPTS;
+let autoReconnectAttempts = 0;
+let shouldShowMessage = true;
+
+const resetAutoReconnect = () => {
+    shouldAutoReconnect = DISCORD_AUTORECONNECT === "true";
+    hasAutoReconnectWaited = false;
+    shouldShowMessage = true;
+    autoReconnectAttempts = 0;
+    clearTimeout(autoReconnectWaitTimer);
+    clearInterval(autoReconnectIntervalTimer);
+}
 
 let shutdownTimers = [];
 
@@ -107,6 +135,9 @@ client.on('ready', () => {
             }
             const rc = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
             rc.on("auth", async () => {
+
+                resetAutoReconnect();
+
                 await command.execute(interaction, rc, {
                     timers: shutdownTimers,
                     setShutdownTimers,
@@ -161,6 +192,10 @@ client.on('ready', () => {
     });
 
 rconConnection.on('auth', function () {
+        if (!shouldAutoReconnect && shouldShowMessage) {
+            serverOnlineMessage(client);
+        }
+        resetAutoReconnect();
 
         log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
         log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
@@ -180,7 +215,7 @@ rconConnection.on('auth', function () {
 
     }).on('error', function (err) {
         log(`[Rcon Error]: ${err.code}`);
-
+        
         if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
             rconConnection.disconnect();
         }
@@ -188,6 +223,27 @@ rconConnection.on('auth', function () {
     }).on('end', function () {
         log("Connection closed");
         log("Lost connection to server, type 'exit' to shutdown");
+
+        if (shouldAutoReconnect) {
+            shouldAutoReconnect = false;
+            log(`Reconnecting in ${DISCORD_AUTORECONNECT_WAIT / 1000}s`)
+            autoReconnectWaitTimer = setTimeout(() => {
+                rconConnection.connect();
+                autoReconnectAttempts += 1
+                autoReconnectIntervalTimer = setInterval(() => {
+                    if (maxAutoReconnectAttempts > 0 && autoReconnectAttempts > maxAutoReconnectAttempts) {
+                        log("Max reconnect attempts reached.");
+                        resetAutoReconnect();
+                    } else {
+                        rconConnection.connect();
+                        log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${DISCORD_AUTORECONNECT_INTERVAL / 1000}s`)
+                        autoReconnectAttempts += 1;
+                    }
+                }, DISCORD_AUTORECONNECT_INTERVAL)
+
+            }, DISCORD_AUTORECONNECT_WAIT)
+        }
+
     });
 
 (async () => {

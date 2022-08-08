@@ -80,8 +80,12 @@ All permissions for the commands are handled by Discord, under the interactions 
 The interactions for the bot will be under tha name of the bot you created.
 
 
-![interactions image](https://github.com/mikey10055/pz_rcon_discord_bot/blob/main/interactions.jpg?raw=true)
+![interactions image](./.github/interactions.jpg?raw=true)
 
 All of the commands will appear once you have run `npm start`
 
-![slashcommands image](https://github.com/mikey10055/pz_rcon_discord_bot/blob/main/slashcommands.jpg?raw=true)
+![slashcommands image](./.github/slashcommands.jpg?raw=true)
+
+# Embeded Messages
+
+All embeded type messages can be configered in `config/messages.js`
