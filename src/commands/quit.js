@@ -7,6 +7,9 @@ const {
 
 const cmd = require('../pzcommands');
 
+const { 
+    serverRestartUpdateMessage
+} = require("../messages/server");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -77,6 +80,8 @@ module.exports = {
                             content: 'Quitting',
                             ephemeral: false
                         });
+
+                        serverRestartUpdateMessage(interaction.client);
                         timers.clearShutdownTimers();
                     }, (mins * 60) * 1000)
                 ]);
@@ -91,6 +96,8 @@ module.exports = {
                     content: 'Quitting',
                     ephemeral: false
                 });
+
+                serverRestartUpdateMessage(interaction.client);
 
                 return;
             }
