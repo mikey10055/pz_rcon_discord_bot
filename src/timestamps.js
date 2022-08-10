@@ -1,4 +1,4 @@
-const now = new Date().toISOString();
+const now = () => new Date().toISOString();
 
 module.exports = {
     now
