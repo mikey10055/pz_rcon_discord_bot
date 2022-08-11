@@ -11,6 +11,8 @@ const {
     serverRestartUpdateMessage
 } = require("../messages/server");
 
+const inGameMsg = require("../../config/inGameMessages")
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("quit")
@@ -41,7 +43,9 @@ module.exports = {
                 }
 
                 const mins = interaction.options.getNumber('minutes');
-                cmd.servermsg(rconConnection, `Server shutting down in ${mins} ${mins != 1 ? "minutes": "minute"}`);
+                const minsText = `${mins} ${mins != 1 ? "minutes": "minute"}`;
+                const msg = inGameMsg.quit.intitalMessage.replace("{x}", minsText);
+                cmd.servermsg(rconConnection, msg);
                 log(`Shutting down in ${(mins * 60) * 1000}ms`);
                 await interaction.editReply({
                     content: `Quitting in ${mins} ${mins != 1 ? "minutes": "minute"}`,
@@ -51,27 +55,27 @@ module.exports = {
                 timers.setShutdownTimers([
                     ((mins * 60) * 1000) - (60000 * 10) > 0 ? 
                         setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 10 minutes`))
+                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning10m))
                         }, ((mins * 60) * 1000) - (60000 * 10))
                     : null,
                     ((mins * 60) * 1000) - (60000 * 5) > 0 ?
                         setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 5 minutes`))
+                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning5m))
                         }, ((mins * 60) * 1000) - (60000 * 5))
                     : null,
                     ((mins * 60) * 1000) - (60000 * 3)  > 0 ?
                         setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 3 minutes`))
+                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning3m))
                         }, ((mins * 60) * 1000) - (60000 * 3)) 
                     : null,
                     ((mins * 60) * 1000) - 60000 > 0 ?
                         setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 1 minute`))
+                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning1m))
                         }, ((mins * 60) * 1000) - 60000)
                     : null,
                     ((mins * 60) * 1000) - 30000 > 0 ? 
                         setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, `Server shutting down in 30 seconds`))
+                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning30s))
                         }, ((mins * 60) * 1000) - 30000)
                     : null,
                     setTimeout(async () => {
@@ -106,7 +110,7 @@ module.exports = {
                 if (timers.areTimersActive()) {
                     timers.clearShutdownTimers();
 
-                    cmd.servermsg(rconConnection, "Server shutdown cancelled");
+                    cmd.servermsg(rconConnection, inGameMsg.quit.canceled);
                     log("Cancelled server shutdown");
                     await interaction.editReply({
                         content: "Cancelled server quit"

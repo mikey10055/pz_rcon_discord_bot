@@ -1,6 +1,6 @@
 # PZ RCON Discord Bot
 
-### Getting started
+## Getting started
 
 Requires [Nodejs](https://nodejs.org/)
 
@@ -12,8 +12,8 @@ npm install
 Inside the `.env` file you will find the following variables.
 
 ```
-RCON_HOST="127.0.0.1"
-RCON_PORT="27015"
+RCON_HOST=""
+RCON_PORT=""
 RCON_PASS=""
 
 # Discord bot client id
@@ -24,6 +24,25 @@ DISCORD_TOKEN=""
 
 # Used for registering slash commands to the specified guild
 DISCORD_GUILDID=""
+
+#### Auto reconnection
+
+# Used for sending server reset messages when /quit is used. 
+# If empty no status messages will be sent when /quit is used
+DISCORD_SERVERSTATUS_CHANNELID=""
+
+# If the bot should try and auto reconnect to ther server once connection is lost.
+DISCORD_AUTORECONNECT="true"
+
+# Time in milliseconds to initaly wait before trying to auto reconnect.
+DISCORD_AUTORECONNECT_WAIT=60000
+
+# Interval in milliseconds after inital wait to auto reconnect
+DISCORD_AUTORECONNECT_INTERVAL=10000
+
+# Amount of time to try and autoreconnect before giving up.
+# Set to 0 to never stop
+DISCORD_MAX_AUTORECONNECT_ATTEMPTS=10
 
 #### COMMANDS
 # values: true || false
@@ -60,6 +79,7 @@ COMMAND_UNBANUSER_ENABLED="true"
 COMMAND_VOICEBAN_ENABLED="true"
 
 
+
 # Extra commands not rcon commands
 COMMAND_HEAL_ENABLED="true"
 
@@ -86,6 +106,15 @@ All of the commands will appear once you have run `npm start`
 
 ![slashcommands image](./.github/slashcommands.jpg?raw=true)
 
-# Embeded Messages
+## Embeded Messages
 
 All embeded type messages can be configered in `config/messages.js`
+
+## Shutdown Server Messages
+
+Shutdown server messages can be configured in `config/inGameMessages.js`
+
+
+---
+
+Have and questions? feel free to ask on [Discord](https://discord.gg/b9V4EnfWAx)
