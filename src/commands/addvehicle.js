@@ -1,8 +1,9 @@
 const {
     SlashCommandBuilder
 } = require('discord.js');
+const { playerAutoComplete } = require('../autocompletes/playerAutoComplete');
 const {
-    notConnectedToRcon
+    notConnectedToRcon, isAutoCompleteOn
 } = require('../helper');
 const cmd = require('../pzcommands');
 
@@ -14,7 +15,7 @@ module.exports = {
             .setName("player")
             .setDescription("Spawn vehicle at players position")
             .addStringOption(option => option.setName("vehicle").setDescription("Vehicle to spawn").setRequired(true))
-            .addStringOption(option => option.setName("player").setDescription("player to spawn vehicle at").setRequired(true))
+            .addStringOption(option => option.setName("player").setDescription("player to spawn vehicle at").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         )
         .addSubcommand(sub => sub
             .setName("coordinate")
@@ -47,4 +48,7 @@ module.exports = {
             }
 
     },
+    async autocomplete(interaction) {
+        await playerAutoComplete(interaction);
+    }
 };

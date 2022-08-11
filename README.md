@@ -9,81 +9,8 @@ Once you have nodejs, open a terminal and type
 npm install
 ```
 
-Inside the `.env` file you will find the following variables.
+Inside the `.env` file you will need to set the variables.
 
-```
-RCON_HOST=""
-RCON_PORT=""
-RCON_PASS=""
-
-# Discord bot client id
-DISCORD_CLIENT_ID=""
-
-# Discord bot token
-DISCORD_TOKEN=""
-
-# Used for registering slash commands to the specified guild
-DISCORD_GUILDID=""
-
-#### Auto reconnection
-
-# Used for sending server reset messages when /quit is used. 
-# If empty no status messages will be sent when /quit is used
-DISCORD_SERVERSTATUS_CHANNELID=""
-
-# If the bot should try and auto reconnect to ther server once connection is lost.
-DISCORD_AUTORECONNECT="true"
-
-# Time in milliseconds to initaly wait before trying to auto reconnect.
-DISCORD_AUTORECONNECT_WAIT=60000
-
-# Interval in milliseconds after inital wait to auto reconnect
-DISCORD_AUTORECONNECT_INTERVAL=10000
-
-# Amount of time to try and autoreconnect before giving up.
-# Set to 0 to never stop
-DISCORD_MAX_AUTORECONNECT_ATTEMPTS=10
-
-#### COMMANDS
-# values: true || false
-# if "false" commands won't be registered at all on discord.
-
-COMMAND_SAVE_ENABLED="true"
-COMMAND_QUIT_ENABLED="true"
-COMMAND_SERVERMSG_ENABLED="true"
-COMMAND_TELEPORT_ENABLED="true"
-COMMAND_TELEPORTTO_ENABLED="true"
-COMMAND_PLAYERS_ENABLED="true"
-
-COMMAND_SETACCESSLEVEL_ENABLED="true"
-COMMAND_ADDITEM_ENABLED="true"
-COMMAND_ADDUSER_ENABLED="true"
-COMMAND_ADDVEHICLE_ENABLED="true"
-COMMAND_ADDXP_ENABLED="true"
-COMMAND_BANID_ENABLED="true"
-COMMAND_BANUSER_ENABLED="true"
-COMMAND_CHANGEOPTION_ENABLED="true"
-COMMAND_CHOPPER_ENABLED="true"
-COMMAND_CREATEHORDE_ENABLED="true"
-COMMAND_GODMOD_ENABLED="true"
-COMMAND_GUNSHOT_ENABLED="true"
-COMMAND_KICK_ENABLED="true"
-COMMAND_LIGHTNING_ENABLED="true"
-COMMAND_REMOVEUSERFROMWHITELIST_ENABLED="true"
-COMMAND_STARTRAIN_ENABLED="true"
-COMMAND_STARTSTORM_ENABLED="true"
-COMMAND_STOPRAIN_ENABLED="true"
-COMMAND_STOPWEATHER_ENABLED="true"
-COMMAND_UNBANID_ENABLED="true"
-COMMAND_UNBANUSER_ENABLED="true"
-COMMAND_VOICEBAN_ENABLED="true"
-
-
-
-# Extra commands not rcon commands
-COMMAND_HEAL_ENABLED="true"
-
-```
 `DISCORD_CLIENT_ID` and `DISCORD_TOKEN` can be found after creating a bot [here](https://discord.com/developers/applications)
 
 `DISCORD_GUILDID` is the Id for the server that can be optained once you enable Developer mode for your discord user account. Can be found at `User Settings -> Advanced -> Developer Mode`. Once enabled you can get the `DISCORD_GUILDID` by right clicking on your servers name or image, and clicking `Copy ID`.
@@ -95,9 +22,9 @@ npm start
 
 ## Managing permissions
 
-All permissions for the commands are handled by Discord, under the interactions tab in server settings. By default all commands require the user to have `Administrator` permission.
+All permissions for the commands are handled by Discord, under the interactions tab in server settings. By default all commands require the user to have the `Administrator` permission.
 
-The interactions for the bot will be under tha name of the bot you created.
+The interactions for the bot will be under the name of the bot you created.
 
 
 ![interactions image](./.github/interactions.jpg?raw=true)
@@ -117,4 +44,4 @@ Shutdown server messages can be configured in `config/inGameMessages.js`
 
 ---
 
-Have and questions? feel free to ask on [Discord](https://discord.gg/b9V4EnfWAx)
+Have any questions? feel free to ask on [Discord](https://discord.gg/b9V4EnfWAx)

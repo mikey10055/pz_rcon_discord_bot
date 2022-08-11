@@ -1,6 +1,8 @@
 const {
     SlashCommandBuilder
 } = require('discord.js');
+const { playerAutoComplete } = require('../autocompletes/playerAutoComplete');
+const { isAutoCompleteOn } = require('../helper');
 const cmd = require('../pzcommands');
 
 
@@ -8,7 +10,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("invisible")
         .setDescription("Make a player invisible to zombies.")
-        .addStringOption(option => option.setName("player").setDescription("Player to set invisible").setRequired(true))
+        .addStringOption(option => option.setName("player").setDescription("Player to set invisible").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addBooleanOption(option => option.setName("enabled").setDescription("Invisible enabled or disabled").setRequired(true))
         .setDefaultMemberPermissions(0),
     async execute(interaction, rconConnection, timers, log) {
@@ -28,4 +30,7 @@ module.exports = {
         }, 1500);
 
     },
+    async autocomplete(interaction) {
+        await playerAutoComplete(interaction);
+    }
 };

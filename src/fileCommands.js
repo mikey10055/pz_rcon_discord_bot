@@ -32,7 +32,13 @@ const {
     COMMAND_UNBANUSER_ENABLED,
     COMMAND_VOICEBAN_ENABLED,
     COMMAND_THUNDER_ENABLED,
-    COMMAND_HEAL_ENABLED
+    COMMAND_HEAL_ENABLED,
+    COMMAND_SHOWOPTIONS_ENABLED,
+    COMMAND_RELOADOPTIONS_ENABLED,
+
+    COMMAND_PERKS_ENABLED,
+    PZ_INVALID_PERK,
+    PZ_USER
 } = process.env;
 
 const getCommand = (filename) => {
@@ -221,6 +227,28 @@ const getCommands = () => {
         commands.push(
             getCommand("heal")
         );
+    }
+
+    if (COMMAND_SHOWOPTIONS_ENABLED === "true") {
+        commands.push(
+            getCommand("showoptions")
+        );
+    }
+
+    if (
+        COMMAND_PERKS_ENABLED === "true" &&
+        (PZ_INVALID_PERK && PZ_INVALID_PERK.length) > 0 &&
+        (PZ_USER && PZ_USER.length > 0)
+    ) {
+        commands.push(
+            getCommand("perks")
+        );
+    }
+
+    if (COMMAND_RELOADOPTIONS_ENABLED === "true") {
+        commands.push(
+            getCommand("reloadoptions")
+        )
     }
 
     return commands;

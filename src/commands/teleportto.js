@@ -1,8 +1,9 @@
 const {
     SlashCommandBuilder
 } = require('discord.js');
+const { playerAutoComplete } = require('../autocompletes/playerAutoComplete');
 const {
-    notConnectedToRcon
+    notConnectedToRcon, isAutoCompleteOn
 } = require('../helper');
 
 const cmd = require('../pzcommands');
@@ -11,7 +12,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("teleportto")
         .setDescription("Teleport player to x,y,z coordinates. Once teleported, wait for the map to appear.")
-        .addStringOption(option => option.setName("player").setDescription("Enter player to teleport").setRequired(true))
+        .addStringOption(option => option.setName("player").setDescription("Enter player to teleport").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addIntegerOption(option => option.setName("x").setDescription("x coordinate").setRequired(true))
         .addIntegerOption(option => option.setName("y").setDescription("y coordinate").setRequired(true))
         .addIntegerOption(option => option.setName("z").setDescription("z coordinate").setRequired(true))
@@ -24,4 +25,7 @@ module.exports = {
 
             cmd.teleportto(rconConnection, p, x, y, z);
     },
+    async autocomplete(interaction) {
+        await playerAutoComplete(interaction);
+    }
 };

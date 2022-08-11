@@ -3,7 +3,12 @@ require('dotenv').config();
 const readline = require("readline");
 
 const Rcon = require('rcon');
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const {
+    Client,
+    GatewayIntentBits,
+    Collection,
+    InteractionType
+} = require('discord.js');
 
 const register = require("../src/deployCommands");
 const { setCommands } = require("../src/fileCommands");
@@ -63,23 +68,23 @@ const {
     RCON_PORT,
     RCON_PASS,
     DISCORD_TOKEN,
-    DISCORD_AUTORECONNECT,
-    DISCORD_AUTORECONNECT_WAIT,
-    DISCORD_AUTORECONNECT_INTERVAL,
-    DISCORD_MAX_AUTORECONNECT_ATTEMPTS
+    RCON_AUTORECONNECT,
+    RCON_AUTORECONNECT_WAIT,
+    RCON_AUTORECONNECT_INTERVAL,
+    RCON_MAX_AUTORECONNECT_ATTEMPTS
 } = process.env;
 
 
-let shouldAutoReconnect = DISCORD_AUTORECONNECT === "true";
+let shouldAutoReconnect = RCON_AUTORECONNECT === "true";
 let hasAutoReconnectWaited = false;
 let autoReconnectIntervalTimer;
 let autoReconnectWaitTimer;
-let maxAutoReconnectAttempts = DISCORD_MAX_AUTORECONNECT_ATTEMPTS;
+let maxAutoReconnectAttempts = RCON_MAX_AUTORECONNECT_ATTEMPTS;
 let autoReconnectAttempts = 0;
 let shouldShowMessage = true;
 
 const resetAutoReconnect = () => {
-    shouldAutoReconnect = DISCORD_AUTORECONNECT === "true";
+    shouldAutoReconnect = RCON_AUTORECONNECT === "true";
     hasAutoReconnectWaited = false;
     shouldShowMessage = true;
     autoReconnectAttempts = 0;
@@ -115,11 +120,19 @@ client.on('ready', () => {
 
 
     client.on('interactionCreate', async interaction => {
-        if (!interaction.isChatInputCommand()) return;
-
+        console.log(interaction.commandName);
         const command = client.commands.get(interaction.commandName);
 
         if (!command) return;
+
+        if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+            if (command.autocomplete) {
+                command.autocomplete(interaction)
+            }
+            return;
+        };
+
+        if (!interaction.isChatInputCommand()) return;
 
         try {
             const enteredOptions = interaction.options._hoistedOptions.map(op => `${op.name}:${op.value}`).join(" ");
@@ -226,7 +239,7 @@ rconConnection.on('auth', function () {
 
         if (shouldAutoReconnect) {
             shouldAutoReconnect = false;
-            log(`Reconnecting in ${DISCORD_AUTORECONNECT_WAIT / 1000}s`)
+            log(`Reconnecting in ${RCON_AUTORECONNECT_WAIT / 1000}s`)
             autoReconnectWaitTimer = setTimeout(() => {
                 rconConnection.connect();
                 autoReconnectAttempts += 1
@@ -236,12 +249,12 @@ rconConnection.on('auth', function () {
                         resetAutoReconnect();
                     } else {
                         rconConnection.connect();
-                        log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${DISCORD_AUTORECONNECT_INTERVAL / 1000}s`)
+                        log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${RCON_AUTORECONNECT_INTERVAL / 1000}s`)
                         autoReconnectAttempts += 1;
                     }
-                }, DISCORD_AUTORECONNECT_INTERVAL)
+                }, RCON_AUTORECONNECT_INTERVAL)
 
-            }, DISCORD_AUTORECONNECT_WAIT)
+            }, RCON_AUTORECONNECT_WAIT)
         }
 
     });
