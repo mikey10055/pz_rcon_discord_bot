@@ -3,7 +3,6 @@ const {
     EmbedBuilder
 } = require('discord.js');
 const cmd = require('../pzcommands');
-const autocompleteOptions = require("../../config/optionsAutoCompleteValues");
 const { isAutoCompleteOn } = require('../helper');
 const { optionsAutoComplete } = require('../autocompletes/optionsAutoComplete');
 
