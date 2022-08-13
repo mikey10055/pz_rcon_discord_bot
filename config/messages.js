@@ -1,4 +1,4 @@
-const { now } = require("../src/timestamps");
+const { now, minitesText } = require("../src/timestamps");
 
 module.exports = {
     /**
@@ -23,6 +23,18 @@ module.exports = {
         color: 0x0099ff,
         title: 'Server Online',
         description: "Server is online",
+        timestamp: now()
+    }),
+    /**
+     * Used when rcon server disconnects and then reconnects 
+     * 
+     *  Content is a discord embed
+     *  For more info on avalable fields see (https://discord.com/developers/docs/resources/channel#embed-object)
+     */
+    "DiscordServerQuitting": (time) => ({
+        color: 0x0099ff,
+        title: 'Server restarting soon:tm:',
+        description: `Server will restart in ${minitesText(time)}`,
         timestamp: now()
     })
 }

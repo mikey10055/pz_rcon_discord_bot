@@ -1,6 +1,7 @@
 const {
     ServerRestartUpdateMessage,
-    ServerOnline
+    ServerOnline,
+    DiscordServerQuitting
 } = require("../../config/messages.js");
 
 const {
@@ -25,7 +26,17 @@ const serverOnlineMessage = (client) => {
     }
 }
 
+const discordServerDisconnectingMessage = (client, time) => {
+    const message = DiscordServerQuitting(time);
+    if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
+        client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
+            embeds: [message]
+        });
+    }
+}
+
 module.exports = {
     serverRestartUpdateMessage,
-    serverOnlineMessage
+    serverOnlineMessage,
+    discordServerDisconnectingMessage
 }

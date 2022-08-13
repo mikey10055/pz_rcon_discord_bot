@@ -8,7 +8,7 @@ const {
 const cmd = require('../pzcommands');
 
 const { 
-    serverRestartUpdateMessage
+    serverRestartUpdateMessage, discordServerDisconnectingMessage
 } = require("../messages/server");
 
 const inGameMsg = require("../../config/inGameMessages")
@@ -45,12 +45,14 @@ module.exports = {
                 const mins = interaction.options.getNumber('minutes');
                 const minsText = `${mins} ${mins != 1 ? "minutes": "minute"}`;
                 const msg = inGameMsg.quit.intitalMessage.replace("{x}", minsText);
-                cmd.servermsg(rconConnection, msg);
+                triggerCommand((rcon) => cmd.servermsg(rcon, msg));
                 log(`Shutting down in ${(mins * 60) * 1000}ms`);
                 await interaction.editReply({
                     content: `Quitting in ${mins} ${mins != 1 ? "minutes": "minute"}`,
                     ephemeral: false
                 });
+
+                discordServerDisconnectingMessage(interaction.client, mins);
 
                 timers.setShutdownTimers([
                     ((mins * 60) * 1000) - (60000 * 10) > 0 ? 
@@ -84,7 +86,6 @@ module.exports = {
                             content: 'Quitting',
                             ephemeral: false
                         });
-
                         serverRestartUpdateMessage(interaction.client);
                         timers.clearShutdownTimers();
                     }, (mins * 60) * 1000)
