@@ -17,6 +17,7 @@ const { replyToInteraction } = require('./helper');
 const {
     serverOnlineMessage
 } = require("./messages/server");
+const ServerStatusEnum = require('./serverStates');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -76,16 +77,19 @@ const {
 
 
 let shouldAutoReconnect = RCON_AUTORECONNECT === "true";
-let hasAutoReconnectWaited = false;
 let autoReconnectIntervalTimer;
 let autoReconnectWaitTimer;
 let maxAutoReconnectAttempts = RCON_MAX_AUTORECONNECT_ATTEMPTS;
 let autoReconnectAttempts = 0;
 let shouldShowMessage = true;
 
+let serverRestartPending = ServerStatusEnum.Offline;
+let setRestartPending = (status) => {
+    serverRestartPending = status
+}
+
 const resetAutoReconnect = () => {
     shouldAutoReconnect = RCON_AUTORECONNECT === "true";
-    hasAutoReconnectWaited = false;
     shouldShowMessage = true;
     autoReconnectAttempts = 0;
     clearTimeout(autoReconnectWaitTimer);
@@ -159,13 +163,20 @@ client.on('ready', () => {
                         const res = shutdownTimers.filter(t => t !== undefined || t !== null).length > 0;
                         return res;
                     }
-                }, log);
+                }, log, {
+                    serverRestartPending,
+                    setRestartPending
+                });
+                rc.disconnect();
             });
             rc.on("response", async (response) => {
                 if (response.length > 0) {
                     log(`[RCON Response]: ${response}`);
                     if (command.reply) {
-                        command.reply(interaction, response);
+                        command.reply(interaction, response, {
+                            serverRestartPending,
+                            setRestartPending
+                        });
                         rc.disconnect();
                         return;
                     } 
@@ -179,9 +190,13 @@ client.on('ready', () => {
             rc.on("error", (err) => {
                 log(`[RCON Error]: ${err.code}`);
                 if (err.code === "ECONNREFUSED") {
-                    replyToInteraction(interaction, {
-                        content: "Server connection refused, please make sure the server is avaliable."
-                    });
+                    if (command.notConnected) {
+                        command.notConnected(interaction)
+                    } else {
+                        replyToInteraction(interaction, {
+                            content: "Server connection refused, please make sure the server is avaliable."
+                        });
+                    }
                     rc.disconnect();
                     return;
                 }
@@ -212,6 +227,8 @@ rconConnection.on('auth', function () {
 
         log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
         log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
+
+        setRestartPending(ServerStatusEnum.Online);
     })
     .on("connect", () => {
         log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
@@ -229,13 +246,18 @@ rconConnection.on('auth', function () {
     }).on('error', function (err) {
         log(`[Rcon Error]: ${err.code}`);
         
-        if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
+        if (
+            err.code === "ECONNRESET" ||
+            err.code === "ETIMEDOUT"
+        ) {
             rconConnection.disconnect();
         }
 
     }).on('end', function () {
         log("Connection closed");
         log("Lost connection to server, type 'exit' to shutdown");
+
+        setRestartPending(ServerStatusEnum.Offline);
 
         if (shouldAutoReconnect) {
             shouldAutoReconnect = false;

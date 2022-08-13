@@ -35,6 +35,7 @@ const {
     COMMAND_HEAL_ENABLED,
     COMMAND_SHOWOPTIONS_ENABLED,
     COMMAND_RELOADOPTIONS_ENABLED,
+    COMMAND_STATUS_ENABLED,
 
     COMMAND_PERKS_ENABLED,
     PZ_INVALID_PERK,
@@ -249,6 +250,12 @@ const getCommands = () => {
         commands.push(
             getCommand("reloadoptions")
         )
+    }
+
+    if (COMMAND_STATUS_ENABLED === "true") {
+        commands.push(
+            getCommand("status")
+        );
     }
 
     return commands;

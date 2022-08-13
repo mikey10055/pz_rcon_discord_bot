@@ -11,7 +11,8 @@ const {
     serverRestartUpdateMessage, discordServerDisconnectingMessage
 } = require("../messages/server");
 
-const inGameMsg = require("../../config/inGameMessages")
+const inGameMsg = require("../../config/inGameMessages");
+const ServerStatusEnum = require('../serverStates');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -31,7 +32,7 @@ module.exports = {
             .setDescription("Cancel save and quit.")
         )
         .setDefaultMemberPermissions(0),
-    async execute(interaction, rconConnection, timers, log) {
+    async execute(interaction, rconConnection, timers, log, isRestarting) {
             const sub = interaction.options.getSubcommand();
             if (sub === "in") {
                 if (timers.areTimersActive()) {
@@ -53,6 +54,8 @@ module.exports = {
                 });
 
                 discordServerDisconnectingMessage(interaction.client, mins);
+
+                isRestarting.setRestartPending(ServerStatusEnum.Restarting);
 
                 timers.setShutdownTimers([
                     ((mins * 60) * 1000) - (60000 * 10) > 0 ? 
@@ -88,6 +91,7 @@ module.exports = {
                         });
                         serverRestartUpdateMessage(interaction.client);
                         timers.clearShutdownTimers();
+                        isRestarting.setRestartPending(ServerStatusEnum.Online);
                     }, (mins * 60) * 1000)
                 ]);
 
@@ -112,10 +116,14 @@ module.exports = {
                     timers.clearShutdownTimers();
 
                     cmd.servermsg(rconConnection, inGameMsg.quit.canceled);
+
                     log("Cancelled server shutdown");
                     await interaction.editReply({
                         content: "Cancelled server quit"
                     });
+
+                    isRestarting.setRestartPending(ServerStatusEnum.Online);
+
                 } else {
                     await interaction.editReply({
                         content: "Nothing to cancel.",

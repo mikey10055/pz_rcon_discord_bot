@@ -1,3 +1,4 @@
+const ServerStatusEnum = require("../src/serverStates");
 const { now, minitesText } = require("../src/timestamps");
 
 module.exports = {
@@ -36,5 +37,37 @@ module.exports = {
         title: 'Server restarting soon:tm:',
         description: `Server will restart in ${minitesText(time)}`,
         timestamp: now()
-    })
+    }),
+    /**
+     * Used when rcon server disconnects and then reconnects 
+     * 
+     *  Content is a discord embed
+     *  For more info on avalable fields see (https://discord.com/developers/docs/resources/channel#embed-object)
+     */
+    "ServerStatus": (status) => {
+            let message = "";
+            switch (status) {
+                case ServerStatusEnum.Offline:
+                    /** Offline message */
+                    message = ":red_circle: Offline";
+                    break;
+                case ServerStatusEnum.Online:
+                    /** Online message */
+                    message = ":green_circle: Online";
+                    break;
+                case ServerStatusEnum.Restarting:
+                    /** Restarting message */
+                    message = ":blue_circle: Restarting";
+                    break;
+                default:
+                    break;
+            }
+            return {
+                color: 0x0099ff,
+                title: 'Server Status',
+                description: message,
+                timestamp: now()
+            }
+    }
+        
 }
