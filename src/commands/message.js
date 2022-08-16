@@ -30,7 +30,7 @@ module.exports = {
         const user5 = interaction.options.getMentionable("user5");
 
         if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
-            client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
+            interaction.client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
                 content: `${message}\r\n\r\n${user1 ? `${user1} ` : ""}${user2 ? `${user2} ` : ""}${user3 ? `${user3} ` : ""}${user4 ? `${user4} ` : ""}${user5 ? `${user5} ` : ""}`
             });
         }
@@ -40,7 +40,7 @@ module.exports = {
         })
 
     },
-    async notConnected(interaction, client) {
+    async notConnected(interaction) {
         const message = interaction.options.getString("message");
         const user1 = interaction.options.getMentionable("user1");
         const user2 = interaction.options.getMentionable("user2");
@@ -49,7 +49,7 @@ module.exports = {
         const user5 = interaction.options.getMentionable("user5");
 
         if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
-            client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
+            interaction.client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
                 content: `${message}\r\n\r\n${user1 ? `${user1} ` : ""}${user2 ? `${user2} ` : ""}${user3 ? `${user3} ` : ""}${user4 ? `${user4} ` : ""}${user5 ? `${user5} ` : ""}`
             });
         }
