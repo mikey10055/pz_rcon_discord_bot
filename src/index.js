@@ -191,7 +191,7 @@ client.on('ready', () => {
                 log(`[RCON Error]: ${err.code}`);
                 if (err.code === "ECONNREFUSED") {
                     if (command.notConnected) {
-                        command.notConnected(interaction)
+                        command.notConnected(interaction, client)
                     } else {
                         replyToInteraction(interaction, {
                             content: "Server connection refused, please make sure the server is avaliable."

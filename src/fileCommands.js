@@ -37,6 +37,8 @@ const {
     COMMAND_RELOADOPTIONS_ENABLED,
     COMMAND_STATUS_ENABLED,
 
+    COMMAND_MESSAGE_ENABLED,
+
     COMMAND_PERKS_ENABLED,
     PZ_INVALID_PERK,
     PZ_USER
@@ -255,6 +257,12 @@ const getCommands = () => {
     if (COMMAND_STATUS_ENABLED === "true") {
         commands.push(
             getCommand("status")
+        );
+    }
+
+    if (COMMAND_MESSAGE_ENABLED === "true") {
+        commands.push(
+            getCommand("message")
         );
     }
 
