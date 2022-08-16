@@ -3,6 +3,7 @@ const {
 } = require('discord.js');
 const { playerAutoComplete } = require('../autocompletes/playerAutoComplete');
 const { isAutoCompleteOn } = require('../helper');
+const { messageCommandMessage } = require('../messages/server');
 const cmd = require('../pzcommands');
 
 const {
@@ -22,18 +23,7 @@ module.exports = {
         .addMentionableOption(option => option.setName("user5").setDescription("User 5"))
         .setDefaultMemberPermissions(0),
     async execute(interaction, rconConnection, timers, log) {
-        const message = interaction.options.getString("message");
-        const user1 = interaction.options.getMentionable("user1");
-        const user2 = interaction.options.getMentionable("user2");
-        const user3 = interaction.options.getMentionable("user3");
-        const user4 = interaction.options.getMentionable("user4");
-        const user5 = interaction.options.getMentionable("user5");
-
-        if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
-            interaction.client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
-                content: `${message}\r\n\r\n${user1 ? `${user1} ` : ""}${user2 ? `${user2} ` : ""}${user3 ? `${user3} ` : ""}${user4 ? `${user4} ` : ""}${user5 ? `${user5} ` : ""}`
-            });
-        }
+        messageCommandMessage(interaction)
 
         interaction.editReply({
             content: "Done"
@@ -41,18 +31,7 @@ module.exports = {
 
     },
     async notConnected(interaction) {
-        const message = interaction.options.getString("message");
-        const user1 = interaction.options.getMentionable("user1");
-        const user2 = interaction.options.getMentionable("user2");
-        const user3 = interaction.options.getMentionable("user3");
-        const user4 = interaction.options.getMentionable("user4");
-        const user5 = interaction.options.getMentionable("user5");
-
-        if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
-            interaction.client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send({
-                content: `${message}\r\n\r\n${user1 ? `${user1} ` : ""}${user2 ? `${user2} ` : ""}${user3 ? `${user3} ` : ""}${user4 ? `${user4} ` : ""}${user5 ? `${user5} ` : ""}`
-            });
-        }
+        messageCommandMessage(interaction)
 
         interaction.editReply({
             content: "Done"

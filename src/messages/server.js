@@ -1,7 +1,8 @@
 const {
     ServerRestartUpdateMessage,
     ServerOnline,
-    DiscordServerQuitting
+    DiscordServerQuitting,
+    MessageCommand
 } = require("../../config/messages.js");
 
 const {
@@ -35,8 +36,25 @@ const discordServerDisconnectingMessage = (client, time) => {
     }
 }
 
+const messageCommandMessage = (interaction) => {
+    
+    const message = interaction.options.getString("message");
+    const user1 = interaction.options.getMentionable("user1");
+    const user2 = interaction.options.getMentionable("user2");
+    const user3 = interaction.options.getMentionable("user3");
+    const user4 = interaction.options.getMentionable("user4");
+    const user5 = interaction.options.getMentionable("user5");
+    const users = `${user1 ? `${user1} ` : ""}${user2 ? `${user2} ` : ""}${user3 ? `${user3} ` : ""}${user4 ? `${user4} ` : ""}${user5 ? `${user5} ` : ""}`;
+    const fmessage = MessageCommand(message, users);
+    
+    if (DISCORD_SERVERSTATUS_CHANNELID && DISCORD_SERVERSTATUS_CHANNELID.length > 0) {
+        interaction.client.channels.cache.get(DISCORD_SERVERSTATUS_CHANNELID).send(fmessage);
+    }
+}
+
 module.exports = {
     serverRestartUpdateMessage,
     serverOnlineMessage,
-    discordServerDisconnectingMessage
+    discordServerDisconnectingMessage,
+    messageCommandMessage
 }

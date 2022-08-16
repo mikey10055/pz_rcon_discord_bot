@@ -68,6 +68,18 @@ module.exports = {
                 description: message,
                 timestamp: now()
             }
-    }
+    },
+    /**
+     * For more info see (https://discord.com/developers/docs/resources/channel#message-object-message-structure)
+     */
+    "MessageCommand": (message, users) => ({
+        content: users,
+        embeds: [{
+            color: 0x0099ff,
+            title: 'Server message',
+            description: message,
+            timestamp: now()
+        }]
+    })
         
 }
