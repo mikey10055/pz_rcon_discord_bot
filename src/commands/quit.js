@@ -32,7 +32,7 @@ module.exports = {
             .setDescription("Cancel save and quit.")
         )
         .setDefaultMemberPermissions(0),
-    async execute(interaction, rconConnection, timers, log, isRestarting) {
+    async execute(interaction, rconConnection, timers, log, isRestarting, restartConnectionNow) {
             const sub = interaction.options.getSubcommand();
             if (sub === "in") {
                 if (timers.areTimersActive()) {
@@ -92,6 +92,7 @@ module.exports = {
                         serverRestartUpdateMessage(interaction.client);
                         timers.clearShutdownTimers();
                         isRestarting.setRestartPending(ServerStatusEnum.Online);
+                        restartConnectionNow();
                     }, (mins * 60) * 1000)
                 ]);
 
@@ -107,7 +108,7 @@ module.exports = {
                 });
 
                 serverRestartUpdateMessage(interaction.client);
-
+                restartConnectionNow();
                 return;
             }
 

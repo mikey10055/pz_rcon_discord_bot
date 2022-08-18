@@ -114,11 +114,15 @@ const client = new Client({
 client.commands = new Collection();
 setCommands(client);
 
-const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+let rconConnection;
+
+const restartConnectionNow = () => {
+    restartconnection(rconConnection);
+}
 
 client.on('ready', () => {
     log(`Connected to Discord as ${client.user.tag}!`);
-
+    rconConnection = CreateRconConnection();
     rconConnection.connect();
 });
 
@@ -153,8 +157,6 @@ client.on('ready', () => {
             const rc = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
             rc.on("auth", async () => {
 
-                resetAutoReconnect();
-
                 await command.execute(interaction, rc, {
                     timers: shutdownTimers,
                     setShutdownTimers,
@@ -166,7 +168,7 @@ client.on('ready', () => {
                 }, log, {
                     serverRestartPending,
                     setRestartPending
-                });
+                }, restartConnectionNow);
                 rc.disconnect();
             });
             rc.on("response", async (response) => {
@@ -184,6 +186,7 @@ client.on('ready', () => {
                         content: response,
                         ephemeral: false
                     });
+
                     rc.disconnect();
                 }
             });
@@ -219,67 +222,80 @@ client.on('ready', () => {
 
     });
 
-rconConnection.on('auth', function () {
-        if (!shouldAutoReconnect && shouldShowMessage) {
-            serverOnlineMessage(client);
-        }
-        resetAutoReconnect();
+const restartconnection = (rconn) => {
+    setRestartPending(ServerStatusEnum.Offline);
 
-        log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
-        log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
+    if (shouldAutoReconnect) {
+        shouldAutoReconnect = false;
+        log(`Reconnecting in ${RCON_AUTORECONNECT_WAIT / 1000}s`)
+        autoReconnectWaitTimer = setTimeout(() => {
+            rconn.connect();
+            autoReconnectAttempts += 1
+            autoReconnectIntervalTimer = setInterval(() => {
+                if (maxAutoReconnectAttempts > 0 && autoReconnectAttempts > maxAutoReconnectAttempts) {
+                    log("Max reconnect attempts reached.");
+                    resetAutoReconnect();
+                } else {
+                    rconn.connect();
+                    log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${RCON_AUTORECONNECT_INTERVAL / 1000}s`)
+                    autoReconnectAttempts += 1;
+                }
+            }, RCON_AUTORECONNECT_INTERVAL)
 
-        setRestartPending(ServerStatusEnum.Online);
-    })
-    .on("connect", () => {
-        log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
-    })
-    .on("server", (str) => {
-        if (str.length > 0) {
-            log("[Rcon Server]: " + str);
-        }
-    })
-    .on('response', function (str) {
-        if (str.length > 0) {
-            log("[Rcon Response]: " + str);
-        }
+        }, RCON_AUTORECONNECT_WAIT)
+    }
+}
 
-    }).on('error', function (err) {
-        log(`[Rcon Error]: ${err.code}`);
-        
-        if (
-            err.code === "ECONNRESET" ||
-            err.code === "ETIMEDOUT"
-        ) {
-            rconConnection.disconnect();
-        }
 
-    }).on('end', function () {
-        log("Connection closed");
-        log("Lost connection to server, type 'exit' to shutdown");
+const CreateRconConnection = () => {
+    const rconC = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+    rconC.on('auth', function () {
+            if (!shouldAutoReconnect && shouldShowMessage) {
+                serverOnlineMessage(client);
+            }
+            resetAutoReconnect();
+    
+            log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
+            log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
+    
+            setRestartPending(ServerStatusEnum.Online);
+        })
+        .on("connect", () => {
+            log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
+        })
+        .on("server", (str) => {
+            if (str.length > 0) {
+                log("[Rcon Server]: " + str);
+            }
+        })
+        .on('response', function (str) {
+            if (str.length > 0) {
+                log("[Rcon Response]: " + str);
+            }
+    
+        }).on('error', function (err) {
+            log(`[Rcon Error]: ${err.code}`);
+            
+            if (
+                err.code === "ECONNRESET" ||
+                err.code === "ETIMEDOUT" ||
+                err.code === "ECONNREFUSED"
+            ) {
+                rconConnection = CreateRconConnection()
+                restartconnection(rconConnection);
+            }
+    
+        }).on('end', function () {
+            log("Connection closed");
+            log("Lost connection to server, type 'exit' to shutdown");
+    
+            restartconnection(rconConnection);
+    
+        });
 
-        setRestartPending(ServerStatusEnum.Offline);
+        return rconC;
 
-        if (shouldAutoReconnect) {
-            shouldAutoReconnect = false;
-            log(`Reconnecting in ${RCON_AUTORECONNECT_WAIT / 1000}s`)
-            autoReconnectWaitTimer = setTimeout(() => {
-                rconConnection.connect();
-                autoReconnectAttempts += 1
-                autoReconnectIntervalTimer = setInterval(() => {
-                    if (maxAutoReconnectAttempts > 0 && autoReconnectAttempts > maxAutoReconnectAttempts) {
-                        log("Max reconnect attempts reached.");
-                        resetAutoReconnect();
-                    } else {
-                        rconConnection.connect();
-                        log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${RCON_AUTORECONNECT_INTERVAL / 1000}s`)
-                        autoReconnectAttempts += 1;
-                    }
-                }, RCON_AUTORECONNECT_INTERVAL)
-
-            }, RCON_AUTORECONNECT_WAIT)
-        }
-
-    });
+}
 
 (async () => {
     await register();
