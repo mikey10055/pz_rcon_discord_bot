@@ -25,7 +25,7 @@ module.exports = {
             const responseEmbed = new EmbedBuilder()
                 .setColor(0x0099FF)
                 .setTitle(players[0].replace(":", ""))
-                .setDescription(description)
+                .setDescription(description.length > 0 ? description : " no players online")
                 .setTimestamp()
 
             interaction.editReply({
