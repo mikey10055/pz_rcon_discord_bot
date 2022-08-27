@@ -8,11 +8,11 @@ const {
 const cmd = require('../pzcommands');
 
 const { 
-    serverRestartUpdateMessage, discordServerDisconnectingMessage
+    discordServerDisconnectingMessage
 } = require("../messages/server");
 
 const inGameMsg = require("../../config/inGameMessages");
-const ServerStatusEnum = require('../serverStates');
+const {ServerStatusEnum} = require('../serverStates');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -89,10 +89,8 @@ module.exports = {
                             content: 'Quitting',
                             ephemeral: false
                         });
-                        serverRestartUpdateMessage(interaction.client);
                         timers.clearShutdownTimers();
                         isRestarting.setRestartPending(ServerStatusEnum.Online);
-                        restartConnectionNow();
                     }, (mins * 60) * 1000)
                 ]);
 
@@ -106,9 +104,6 @@ module.exports = {
                     content: 'Quitting',
                     ephemeral: false
                 });
-
-                serverRestartUpdateMessage(interaction.client);
-                restartConnectionNow();
                 return;
             }
 

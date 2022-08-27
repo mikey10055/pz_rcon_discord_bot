@@ -1,6 +1,8 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord.js');
 const { getCommands } = require('./fileCommands');
+const { logToFile } = require('./logging');
+const { log } = require('./onstart');
 
 const {
     DISCORD_CLIENT_ID,
@@ -19,15 +21,17 @@ const rest = new REST({
 
 const register = (async () => {
     try {
-        console.log('>: Started refreshing application (/) commands.');
+        log('Started refreshing application (/) commands.');
+        logToFile(`Adding commands: [${commands.map(c => c.name).join(", ")}]`)
 
         await rest.put(Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILDID), {
             body: commands
         });
-
-        console.log('>: Successfully reloaded application (/) commands.');
+        logToFile("Commands Added Successfully")
+        log('Successfully reloaded application (/) commands.');
     } catch (error) {
-        console.error(error);
+        log(error);
+        logToFile(error);
     }
 });
 

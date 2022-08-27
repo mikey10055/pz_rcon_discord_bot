@@ -2,7 +2,9 @@ const {
     ServerRestartUpdateMessage,
     ServerOnline,
     DiscordServerQuitting,
-    MessageCommand
+    MessageCommand,
+    DailyRestartMessage,
+    DailyWarningRestartMessage,
 } = require("../../config/messages.js");
 
 const {

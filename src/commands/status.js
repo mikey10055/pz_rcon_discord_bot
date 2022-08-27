@@ -4,7 +4,7 @@ const {
 const { ServerStatus } = require('../../config/messages');
 const { rconCommand } = require('../helper');
 const cmd = require('../pzcommands');
-const ServerStatusEnum = require('../serverStates');
+const {ServerStatusEnum} = require('../serverStates');
 
 
 module.exports = {

@@ -6,6 +6,7 @@ const {
 } = process.env;
 
 const Rcon = require('rcon');
+const { logToFile } = require('./logging');
 
 const hasRole = (member, role) => member.roles.cache.has(role);
 
@@ -28,28 +29,28 @@ const triggerCommand = (command) => {
     const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
     rconConnection.on('auth', function () {
             command(rconConnection);
-            console.log(`>: [RCON Auth][triggerCommand]: auth`)
+            logToFile(`[RCON Auth][${rconConnection.rconId}][triggerCommand]: auth`)
         })
         .on("connect", () => {
-            console.log(`>: [RCON Connect][triggerCommand]: connect`)
+            logToFile(`[RCON Connect][${rconConnection.rconId}][triggerCommand]: connect`)
         })
         .on("server", (str) => {
-            console.log(`>: [RCON Server][triggerCommand]: ${str}`)
+            logToFile(`[RCON Server][${rconConnection.rconId}][triggerCommand]: ${str}`)
         })
         .on('response', function (str) {
             if (str.length > 0) {
-                console.log(`>: [RCON Response][triggerCommand]: ${str}`)
+                logToFile(`[RCON Response][${rconConnection.rconId}][triggerCommand]: ${str}`)
                 rconConnection.disconnect();
             }
         }).on('error', function (err) {
-            console.log(`[Rcon Error][triggerCommand]: ${err.code}`);
+            logToFile(`[Rcon Error][${rconConnection.rconId}][triggerCommand]: ${err.code}`);
 
             if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
                 rconConnection.disconnect();
             }
 
         }).on('end', function () {
-            console.log("[RCON Response][triggerCommand]: End")
+            logToFile(`[RCON Response][${rconConnection.rconId}][triggerCommand]: End`)
         });
 
         rconConnection.connect();
@@ -60,23 +61,22 @@ const rconCommand = (command) => {
         const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
         rconConnection.on('auth', function () {
                 command(rconConnection);
-                console.log("[RCON Auth][rconCommand]: auth")
-
+                logToFile(`[RCON Auth][${rconConnection.rconId}][rconCommand]: auth`)
             })
             .on("connect", () => {
-                console.log("[RCON Connect][rconCommand]: connect")
+                logToFile(`[RCON Connect][${rconConnection.rconId}][rconCommand]: connect`)
             })
             .on("server", (str) => {
-                console.log("[RCON Server][rconCommand]: " + str)
+                logToFile(`[RCON Server][${rconConnection.rconId}][rconCommand]: ${str}`)
             })
             .on('response', function (str) {
                 if (str.length > 0) {
                     rconConnection.disconnect();
-                    console.log(`[RCON Response][rconCommand]: ${str}`)
+                    logToFile(`[RCON Response][${rconConnection.rconId}][rconCommand]: ${str}`)
                     resolve(str)
                 }
             }).on('error', function (err) {
-                console.log(`[Rcon Error][rconCommand]: ${err.code} rconCommand`);
+                logToFile(`[Rcon Error][${rconConnection.rconId}][rconCommand]: ${err.code} rconCommand`);
     
                 if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
                     rconConnection.disconnect();
@@ -84,7 +84,7 @@ const rconCommand = (command) => {
                 
                 reject(err.code)
             }).on('end', function () {
-                console.log("[RCON End][rconCommand]: End")
+                logToFile(`[RCON End][${rconConnection.rconId}][rconCommand]: End`)
 
             });
     

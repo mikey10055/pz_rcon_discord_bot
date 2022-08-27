@@ -1,3 +1,4 @@
 node_modules
 _o
 .env
+logs/*

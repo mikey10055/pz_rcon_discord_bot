@@ -4,6 +4,7 @@ const {
 const {
     playerAutoComplete
 } = require('../autocompletes/playerAutoComplete');
+const { rconCommand } = require('../helper');
 const cmd = require('../pzcommands');
 
 const {
@@ -17,6 +18,18 @@ module.exports = {
         .setDescription("Display a list of perks")
         .setDefaultMemberPermissions(0),
     async execute(interaction, rconConnection, timers, log) {
-        cmd.addxp(rconConnection, PZ_USER, PZ_INVALID_PERK, 0);
+        const response = await rconCommand((rcon) => {
+            cmd.players(rcon);
+        });
+        if (response.startsWith("Players connected")) {
+            const player = response.split("-")[1];
+            cmd.addxp(rconConnection, player, PZ_INVALID_PERK, 0);
+            return;
+        }
+
+        interaction.editReply({
+            content: "no valid player"
+        });
+
     }
 };
