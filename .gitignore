@@ -1,4 +1,4 @@
 node_modules
 _o
 .env
-logs/*
+logs/*.txt
