@@ -1,7 +1,17 @@
 const ServerStatusEnum = {
-    Online: 1,
-    Restarting: 2,
-    Offline: 3
+    Online: 0,
+    Restarting: 1,
+    Offline: 2
 }
 
-module.exports = ServerStatusEnum
+const RconState = {
+    NotConnected: 0,
+    Connecting: 1,
+    Connected: 2,
+    Authenticated: 3
+}
+
+module.exports = {
+    ServerStatusEnum,
+    RconState
+}

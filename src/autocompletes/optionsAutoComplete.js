@@ -25,9 +25,7 @@ const optionsAutoComplete = async (interaction) => {
         interaction.respond([]);
     } catch (error) {
         console.log(error);
-        await interaction.editReply({
-            content: "An Error has occurred"
-        });
+        await interaction.respond([]);
     }
 }
 

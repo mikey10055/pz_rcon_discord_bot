@@ -1,6 +1,5 @@
 require('dotenv').config();
-
-const readline = require("readline");
+const { log, terminal } = require('./onstart');
 
 const Rcon = require('rcon');
 const {
@@ -15,85 +14,24 @@ const { setCommands } = require("../src/fileCommands");
 const { replyToInteraction } = require('./helper');
 
 const {
-    serverOnlineMessage
+    serverOnlineMessage, serverRestartUpdateMessage
 } = require("./messages/server");
-const ServerStatusEnum = require('./serverStates');
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-const prompt = (query) => new Promise((resolve) => rl.question(query, resolve));
-
-const log = (data) => {
-    newLine();
-    console.log(data);
-    newLine();
-}
-
-const newLine = (async () => {
-    try {
-        const txt = await prompt(`>: `);
-        if (txt === "exit") {
-            process.exit(0);
-        } else if (txt === "connect") {
-            if (!rconConnection.hasAuthed) {
-                rconConnection.connect();
-            } else {
-                log("Already connected");
-            }
-            newLine();
-        } else if (txt === "disconnect") {
-            if (rconConnection.hasAuthed) {
-                shouldAutoReconnect = false;
-                shouldShowMessage = false;
-                rconConnection.disconnect();
-            } else {
-                log("Not connected");
-            }
-            newLine();
-        } else {
-            rconConnection.send(txt);
-            newLine();
-        }
-    } catch (e) {
-        console.error("unable to prompt", e)
-        newline();
-    }
-});
-
-rl.on('close', () => process.exit(0));
+const {ServerStatusEnum, RconState} = require('./serverStates');
+const { PersistentRconConnection } = require('./persistentRconConnection');
 
 const {
     RCON_HOST,
     RCON_PORT,
     RCON_PASS,
     DISCORD_TOKEN,
-    RCON_AUTORECONNECT,
-    RCON_AUTORECONNECT_WAIT,
-    RCON_AUTORECONNECT_INTERVAL,
-    RCON_MAX_AUTORECONNECT_ATTEMPTS
+    DISCORD_SERVERSTATUS_CHANNELID,
+    COMMANDS_REFRESH_ON_START
+    
 } = process.env;
-
-
-let shouldAutoReconnect = RCON_AUTORECONNECT === "true";
-let autoReconnectIntervalTimer;
-let autoReconnectWaitTimer;
-let maxAutoReconnectAttempts = RCON_MAX_AUTORECONNECT_ATTEMPTS;
-let autoReconnectAttempts = 0;
-let shouldShowMessage = true;
 
 let serverRestartPending = ServerStatusEnum.Offline;
 let setRestartPending = (status) => {
     serverRestartPending = status
-}
-
-const resetAutoReconnect = () => {
-    shouldAutoReconnect = RCON_AUTORECONNECT === "true";
-    shouldShowMessage = true;
-    autoReconnectAttempts = 0;
-    clearTimeout(autoReconnectWaitTimer);
-    clearInterval(autoReconnectIntervalTimer);
 }
 
 let shutdownTimers = [];
@@ -108,27 +46,54 @@ const clearShutdownTimers = () => {
 }
 
 const client = new Client({
-    intents: Object.values(GatewayIntentBits)
+    intents: [GatewayIntentBits.GuildIntegrations]
 });
 
 client.commands = new Collection();
 setCommands(client);
 
-let rconConnection;
+const prcon = new PersistentRconConnection();
 
-const restartConnectionNow = () => {
-    restartconnection(rconConnection);
-}
+prcon.on("connect", (e) => {
+    log("Connected to server", "MAIN");
+});
 
-client.on('ready', () => {
-    log(`Connected to Discord as ${client.user.tag}!`);
-    rconConnection = CreateRconConnection();
-    rconConnection.connect();
+prcon.on("reconnecting", ({attempt, maxAttempts}) => {
+    log(`[${attempt}/${maxAttempts}] attepting to reconnect to server`, "MAIN");
+});
+
+prcon.on("maxattemptsreached", () => {
+    log("Max reconnect attempts reached, type connect to try reconnect", "MAIN");
+})
+
+prcon.on("alreadyconnected", () => {
+    log("Already connected", "MAIN");
+})
+
+client.on('ready', async () => {
+    log(`Connected to Discord as ${client.user.tag}!`, "MAIN");
+    try {
+        const channel = await client.channels.fetch(DISCORD_SERVERSTATUS_CHANNELID);
+        log(`Using ${channel.name} as status channel`, "MAIN");
+        
+    } catch (error) {
+        log("No status channel set", "MAIN");
+    }
+
+    prcon.on("close", (e) => {
+        serverRestartUpdateMessage(client);
+        log("Disconnected from server", "MAIN");
+    });
+
+    prcon.on("reconnect", () => {
+        log("Reconnected to server", "MAIN");
+        serverOnlineMessage(client);
+    })
+
 });
 
 
     client.on('interactionCreate', async interaction => {
-        console.log(interaction.commandName);
         const command = client.commands.get(interaction.commandName);
 
         if (!command) return;
@@ -144,8 +109,10 @@ client.on('ready', () => {
 
         try {
             const enteredOptions = interaction.options._hoistedOptions.map(op => `${op.name}:${op.value}`).join(" ");
+            const sub = interaction.options.getSubcommand(false);
             log(
-                `[Discord]: ${interaction.member.user.tag} executed /${interaction.commandName} ${enteredOptions}`
+                `[Discord]: ${interaction.member.user.tag} executed /${interaction.commandName}${sub ? " " + sub : ""} ${enteredOptions}`,
+                "MAIN"
             );
             if (command.beforeExecute) {
                 command.beforeExecute(interaction);
@@ -168,12 +135,12 @@ client.on('ready', () => {
                 }, log, {
                     serverRestartPending,
                     setRestartPending
-                }, restartConnectionNow);
+                }, () => {});
                 rc.disconnect();
             });
             rc.on("response", async (response) => {
                 if (response.length > 0) {
-                    log(`[RCON Response]: ${response}`);
+                    log(`[RCON Response]: ${response}`, "MAIN");
                     if (command.reply) {
                         command.reply(interaction, response, {
                             serverRestartPending,
@@ -191,7 +158,7 @@ client.on('ready', () => {
                 }
             });
             rc.on("error", (err) => {
-                log(`[RCON Error]: ${err.code}`);
+                log(`[RCON Error]: ${err.code}`, "MAIN");
                 if (err.code === "ECONNREFUSED") {
                     if (command.notConnected) {
                         command.notConnected(interaction)
@@ -213,7 +180,7 @@ client.on('ready', () => {
             rc.connect();
 
         } catch (error) {
-            console.log(error);
+            log(error, "MAIN");
             await interaction.reply({
                 content: 'There was an error while executing this command!',
                 ephemeral: false
@@ -222,82 +189,38 @@ client.on('ready', () => {
 
     });
 
-const restartconnection = (rconn) => {
-    setRestartPending(ServerStatusEnum.Offline);
-
-    if (shouldAutoReconnect) {
-        shouldAutoReconnect = false;
-        log(`Reconnecting in ${RCON_AUTORECONNECT_WAIT / 1000}s`)
-        autoReconnectWaitTimer = setTimeout(() => {
-            rconn.connect();
-            autoReconnectAttempts += 1
-            autoReconnectIntervalTimer = setInterval(() => {
-                if (maxAutoReconnectAttempts > 0 && autoReconnectAttempts > maxAutoReconnectAttempts) {
-                    log("Max reconnect attempts reached.");
-                    resetAutoReconnect();
-                } else {
-                    rconn.connect();
-                    log(`${autoReconnectAttempts}/${maxAutoReconnectAttempts}: Reconnecting in ${RCON_AUTORECONNECT_INTERVAL / 1000}s`)
-                    autoReconnectAttempts += 1;
-                }
-            }, RCON_AUTORECONNECT_INTERVAL)
-
-        }, RCON_AUTORECONNECT_WAIT)
-    }
-}
-
-
-const CreateRconConnection = () => {
-    const rconC = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
-    rconC.on('auth', function () {
-            if (!shouldAutoReconnect && shouldShowMessage) {
-                serverOnlineMessage(client);
-            }
-            resetAutoReconnect();
-    
-            log(`Connected to ${RCON_HOST}:${RCON_PORT}`);
-            log("Extra commands: connect, disconnect, exit ( shuts down the bot ) ");
-    
-            setRestartPending(ServerStatusEnum.Online);
-        })
-        .on("connect", () => {
-            log(`Connecting to ${RCON_HOST}:${RCON_PORT}...`);
-        })
-        .on("server", (str) => {
-            if (str.length > 0) {
-                log("[Rcon Server]: " + str);
-            }
-        })
-        .on('response', function (str) {
-            if (str.length > 0) {
-                log("[Rcon Response]: " + str);
-            }
-    
-        }).on('error', function (err) {
-            log(`[Rcon Error]: ${err.code}`);
-            
-            if (
-                err.code === "ECONNRESET" ||
-                err.code === "ETIMEDOUT" ||
-                err.code === "ECONNREFUSED"
-            ) {
-                rconConnection = CreateRconConnection()
-                restartconnection(rconConnection);
-            }
-    
-        }).on('end', function () {
-            log("Connection closed");
-            log("Lost connection to server, type 'exit' to shutdown");
-    
-            restartconnection(rconConnection);
-    
-        });
-
-        return rconC;
-
-}
-
 (async () => {
-    await register();
-    client.login(DISCORD_TOKEN);
+    terminal.addCommand({
+        name: "connect",
+        fn: async () => {
+            try {
+                if (prcon.state === RconState.NotConnected) {
+                    await prcon.start();
+                } else {
+                    log("Already connected", "MAIN");
+                }
+            } catch (err) {
+                log(`[Application][Error] ${JSON.stringify(err)}`, "MAIN");
+            }
+        }
+    });
+
+    terminal.addCommand({
+        name: "status",
+        fn: async () => {
+            log(prcon.getCurrentState(), "STATUS");
+        }
+    });
+
+    try {
+        if (COMMANDS_REFRESH_ON_START === "true") {
+            await register();
+        }
+        client.login(DISCORD_TOKEN);
+        await prcon.start();
+        
+    } catch (err) {
+        log(`[Application][Error] ${JSON.stringify(err)}`, "MAIN");
+    }
+
 })();
