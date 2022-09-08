@@ -26,7 +26,9 @@ const replyToInteraction = async (interaction, data) => {
 }
 
 const triggerCommand = (command) => {
-    const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+    const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS, {
+        id: "505055"
+    });
     rconConnection.on('auth', function () {
             command(rconConnection);
             logToFile(`[RCON Auth][${rconConnection.rconId}][triggerCommand]: auth`)
@@ -58,7 +60,9 @@ const triggerCommand = (command) => {
 
 const rconCommand = (command) => {
     return new Promise((resolve, reject) => {
-        const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
+        const rconConnection = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS, {
+            id: "808088"
+        });
         rconConnection.on('auth', function () {
                 command(rconConnection);
                 logToFile(`[RCON Auth][${rconConnection.rconId}][rconCommand]: auth`)

@@ -135,7 +135,7 @@ client.on('ready', async () => {
                 }, log, {
                     serverRestartPending,
                     setRestartPending
-                }, () => {});
+                }, () => { prcon.disconnect() });
                 rc.disconnect();
             });
             rc.on("response", async (response) => {
@@ -209,6 +209,13 @@ client.on('ready', async () => {
         name: "status",
         fn: async () => {
             log(prcon.getCurrentState(), "STATUS");
+        }
+    });
+
+    terminal.addCommand({
+        name: "disconnect",
+        fn: async () => {
+            prcon.disconnect();
         }
     });
 

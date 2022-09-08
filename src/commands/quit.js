@@ -85,6 +85,7 @@ module.exports = {
                     : null,
                     setTimeout(async () => {
                         triggerCommand((rcon) => { cmd.quit(rcon); });
+                        restartConnectionNow();
                         await interaction.followUp({
                             content: 'Quitting',
                             ephemeral: false
@@ -100,6 +101,7 @@ module.exports = {
             if (sub === "now") {
                 timers.clearShutdownTimers();
                 cmd.quit(rconConnection);
+                restartConnectionNow();
                 await interaction.editReply({
                     content: 'Quitting',
                     ephemeral: false
