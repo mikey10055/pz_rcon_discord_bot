@@ -159,7 +159,7 @@ client.on('ready', async () => {
             });
             rc.on("error", (err) => {
                 log(`[RCON Error]: ${err.code}`, "MAIN");
-                if (err.code === "ECONNREFUSED") {
+                if (err.code === "ECONNREFUSED" || err.code === "ETIMEDOUT") {
                     if (command.notConnected) {
                         command.notConnected(interaction)
                     } else {
