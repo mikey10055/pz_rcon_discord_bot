@@ -26,7 +26,7 @@ module.exports = {
                     { name: 'Player', value: 'Player' }
                 )
             )
-            .setDefaultMemberPermissions(0),
+            ,
     async execute(interaction, rconConnection, timers, log) {
 
         const user = interaction.options.getString('player');

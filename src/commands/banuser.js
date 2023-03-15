@@ -13,7 +13,7 @@ module.exports = {
         .addStringOption(option => option.setName("user").setDescription("Username").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addBooleanOption(option => option.setName("ip").setDescription("Should ban the users ip. Defaults to false"))
         .addStringOption(option => option.setName("reason").setDescription("Reason the user is banned."))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const user = interaction.options.getString("user");
         const ip = interaction.options.getBoolean("ip");

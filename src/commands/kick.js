@@ -12,7 +12,7 @@ module.exports = {
         .setDescription("Kick a user.")
         .addStringOption(option => option.setName("player").setDescription("Player to kick").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addStringOption(option => option.setName("reason").setDescription("Reason for kick"))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const player = interaction.options.getString("player");
         const reason = interaction.options.getString("reason");

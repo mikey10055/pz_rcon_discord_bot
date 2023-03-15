@@ -16,7 +16,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("perks")
         .setDescription("Display a list of perks")
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const response = await rconCommand((rcon) => {
             cmd.players(rcon);

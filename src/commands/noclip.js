@@ -12,7 +12,7 @@ module.exports = {
         .setDescription("Makes a player pass through walls and structures.")
         .addStringOption(option => option.setName("player").setDescription("Player to enable/disable").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addBooleanOption(option => option.setName("enabled").setDescription("Enable or Disable").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const player = interaction.options.getString("player");
         const enabled = interaction.options.getBoolean("enabled");

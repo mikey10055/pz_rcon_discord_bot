@@ -8,7 +8,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("stopweather")
         .setDescription("Stop weather on the server.")
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         cmd.stopweather(rconConnection);
     },

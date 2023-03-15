@@ -1,4 +1,10 @@
+## WARNING
+```
+This branch has no default permissions set, so when you add the bot to the server anyone can use the commands until you change this in the integration settings.
+```
+
 # PZ RCON Discord Bot
+
 
 ## Getting started
 

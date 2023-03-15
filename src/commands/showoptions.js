@@ -15,7 +15,7 @@ module.exports = {
                 .setDescription('select option to view')
                 .setRequired(true)
                 .setAutocomplete(isAutoCompleteOn()))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         cmd.showoptions(rconConnection);
     },

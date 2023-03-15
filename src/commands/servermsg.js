@@ -13,7 +13,7 @@ module.exports = {
         .setName("servermsg")
         .setDescription("Broadcast a message to all connected players.")
         .addStringOption(option => option.setName("message").setDescription("Enter message").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const msg = interaction.options.getString('message');
         cmd.servermsg(rconConnection, msg);

@@ -31,7 +31,7 @@ module.exports = {
             .setName("cancel")
             .setDescription("Cancel save and quit.")
         )
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log, isRestarting, restartConnectionNow) {
             const sub = interaction.options.getSubcommand();
             if (sub === "in") {

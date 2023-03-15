@@ -12,7 +12,7 @@ module.exports = {
         .setDescription("Make a player invisible to zombies.")
         .addStringOption(option => option.setName("player").setDescription("Player to set invisible").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addBooleanOption(option => option.setName("enabled").setDescription("Invisible enabled or disabled").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const player = interaction.options.getString("player");
         const enabled = interaction.options.getBoolean("enabled");

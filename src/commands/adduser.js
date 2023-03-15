@@ -11,8 +11,7 @@ module.exports = {
         .setName("adduser")
         .setDescription("Use this command to add a new user to a whitelisted server.")
         .addStringOption(option => option.setName("username").setDescription("Username").setRequired(true))
-        .addStringOption(option => option.setName("password").setDescription("Password").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        .addStringOption(option => option.setName("password").setDescription("Password").setRequired(true)),
     async execute(interaction, rconConnection, timers, log) {
 
             const user = interaction.options.getString('username');

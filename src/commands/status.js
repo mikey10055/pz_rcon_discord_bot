@@ -11,7 +11,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("status")
         .setDescription("Current server status")
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log, isRestarting) {
         cmd.players(rconConnection)
     },

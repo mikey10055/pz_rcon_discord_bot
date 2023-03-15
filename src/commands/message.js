@@ -21,7 +21,7 @@ module.exports = {
         .addMentionableOption(option => option.setName("user3").setDescription("User 3"))
         .addMentionableOption(option => option.setName("user4").setDescription("User 4"))
         .addMentionableOption(option => option.setName("user5").setDescription("User 5"))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         messageCommandMessage(interaction)
 

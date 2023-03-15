@@ -16,7 +16,7 @@ module.exports = {
         .addIntegerOption(option => option.setName("x").setDescription("x coordinate").setRequired(true))
         .addIntegerOption(option => option.setName("y").setDescription("y coordinate").setRequired(true))
         .addIntegerOption(option => option.setName("z").setDescription("z coordinate").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
             const p = interaction.options.getString('player');
             const x = interaction.options.getInteger('x');

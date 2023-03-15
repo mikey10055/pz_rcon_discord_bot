@@ -14,7 +14,7 @@ module.exports = {
         .addStringOption(option => option.setName("player").setDescription("player to give xp too").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addStringOption(option => option.setName("perk").setDescription("perk").setRequired(true).setAutocomplete(isAutoCompleteOn()))
         .addIntegerOption(option => option.setName("xp").setDescription("xp to add").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
 
             const player = interaction.options.getString('player');

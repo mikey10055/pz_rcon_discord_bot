@@ -14,7 +14,7 @@ module.exports = {
         .setName("heal")
         .setDescription("Heals a player.")
         .addStringOption(option => option.setName("player").setDescription("Player to heal").setRequired(true).setAutocomplete(isAutoCompleteOn()))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const player = interaction.options.getString("player");
         cmd.godmod(rconConnection, player, true);

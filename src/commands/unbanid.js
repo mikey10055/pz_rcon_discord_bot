@@ -9,7 +9,7 @@ module.exports = {
         .setName("unbanid")
         .setDescription("Unban a SteamID.")
         .addStringOption(option => option.setName("steamid").setDescription("Users Steam ID").setRequired(true))
-        .setDefaultMemberPermissions(0),
+        ,
     async execute(interaction, rconConnection, timers, log) {
         const steamid = interaction.options.getString("steamid");
         cmd.unbanid(rconConnection, steamid);
