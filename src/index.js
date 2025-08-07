@@ -1,6 +1,8 @@
 require('dotenv').config();
 const { log, terminal } = require('./onstart');
 
+const PluginManager = require('./MainPluginManager.js');
+
 const Rcon = require('rcon');
 const {
     Client,
@@ -18,6 +20,7 @@ const {
 } = require("./messages/server");
 const {ServerStatusEnum, RconState} = require('./serverStates');
 const { PersistentRconConnection } = require('./persistentRconConnection');
+const { MainServerShutdownManager } = require('./ServerShutdownManager.js');
 
 const {
     RCON_HOST,
@@ -26,24 +29,7 @@ const {
     DISCORD_TOKEN,
     DISCORD_SERVERSTATUS_CHANNELID,
     COMMANDS_REFRESH_ON_START
-    
 } = process.env;
-
-let serverRestartPending = ServerStatusEnum.Offline;
-let setRestartPending = (status) => {
-    serverRestartPending = status
-}
-
-let shutdownTimers = [];
-
-const setShutdownTimers = (timers) => {
-    shutdownTimers = timers;
-}
-
-const clearShutdownTimers = () => {
-    shutdownTimers.forEach(t => clearTimeout(t));
-    shutdownTimers = [];
-}
 
 const client = new Client({
     intents: [GatewayIntentBits.GuildIntegrations]
@@ -72,6 +58,9 @@ prcon.on("alreadyconnected", () => {
 
 client.on('ready', async () => {
     log(`Connected to Discord as ${client.user.tag}!`, "MAIN");
+
+    PluginManager.discord_ready(client, prcon);
+
     try {
         const channel = await client.channels.fetch(DISCORD_SERVERSTATUS_CHANNELID);
         log(`Using ${channel.name} as status channel`, "MAIN");
@@ -94,6 +83,9 @@ client.on('ready', async () => {
 
 
     client.on('interactionCreate', async interaction => {
+
+        PluginManager.discord_interaction(client, prcon, interaction);
+
         const command = client.commands.get(interaction.commandName);
 
         if (!command) return;
@@ -124,28 +116,22 @@ client.on('ready', async () => {
             const rc = new Rcon(RCON_HOST, RCON_PORT, RCON_PASS);
             rc.on("auth", async () => {
 
-                await command.execute(interaction, rc, {
-                    timers: shutdownTimers,
-                    setShutdownTimers,
-                    clearShutdownTimers,
-                    areTimersActive: () => {
-                        const res = shutdownTimers.filter(t => t !== undefined || t !== null).length > 0;
-                        return res;
-                    }
-                }, log, {
-                    serverRestartPending,
-                    setRestartPending
-                }, () => { prcon.disconnect() });
+                await command.execute(
+                    interaction, 
+                    rc, 
+                    MainServerShutdownManager, 
+                    log, 
+                    MainServerShutdownManager, 
+                    () => { prcon.disconnect() }
+                );
+
                 rc.disconnect();
             });
             rc.on("response", async (response) => {
                 if (response.length > 0) {
                     log(`[RCON Response]: ${response}`, "MAIN");
                     if (command.reply) {
-                        command.reply(interaction, response, {
-                            serverRestartPending,
-                            setRestartPending
-                        });
+                        command.reply(interaction, response, MainServerShutdownManager);
                         rc.disconnect();
                         return;
                     } 

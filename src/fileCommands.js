@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const PluginManager = require('./MainPluginManager.js');
 
 const {
     COMMAND_SAVE_ENABLED,
@@ -265,6 +266,8 @@ const getCommands = () => {
             getCommand("message")
         );
     }
+
+    commands.push(...PluginManager.commands());
 
     return commands;
 

@@ -7,7 +7,7 @@ const fileName = `${getDateString()}-log.txt`;
 
 const logPath = path.join(__dirname, "../logs", fileName);
 
-fs.writeFile(logPath, `<${getDateString()}> Bot Started\r\n`, function (err) {
+fs.writeFile(logPath, `<${getDateString()}> [GLOBAL] Bot Started\r\n`, function (err) {
     if (err) {
         return console.log(err);
     }

@@ -8,7 +8,7 @@ terminal.init();
 
 const log = (text, type) => {
 
-    const extra = type ? `[${type}] ` : "";
+    const extra = type ? `[${type}] ` : "[GLOBAL] ";
     terminal.log(text);
     logToFile(`${extra}${text}`);
 }

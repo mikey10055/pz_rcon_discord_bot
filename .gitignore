@@ -2,3 +2,5 @@ node_modules
 _o
 .env
 logs/*.txt
+plugins/*
+.dev.env

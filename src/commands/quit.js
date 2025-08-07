@@ -13,23 +13,24 @@ const {
 
 const inGameMsg = require("../../config/inGameMessages");
 const {ServerStatusEnum} = require('../serverStates');
+const uiText = require('../../config/ui.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("quit")
-        .setDescription("Save and quit the server.")
+        .setDescription(uiText.commands.quit.description)
         .addSubcommand(sub => sub
             .setName("now")
-            .setDescription("Save and quit immediately")
+            .setDescription(uiText.commands.quit.now.description)
         )
         .addSubcommand(sub => sub
             .setName("in")
-            .setDescription("Save and quit in `x` minutes.")
-            .addNumberOption(option => option.setName("minutes").setDescription("How long in minites until the server saves and quits").setRequired(true))
+            .setDescription(uiText.commands.quit.in.description)
+            .addNumberOption(option => option.setName("minutes").setDescription(uiText.commands.quit.in.timeOptionDescription).setRequired(true))
         )
         .addSubcommand(sub => sub
             .setName("cancel")
-            .setDescription("Cancel save and quit.")
+            .setDescription(uiText.commands.quit.cancel.description)
         )
         .setDefaultMemberPermissions(0),
     async execute(interaction, rconConnection, timers, log, isRestarting, restartConnectionNow) {
@@ -37,63 +38,26 @@ module.exports = {
             if (sub === "in") {
                 if (timers.areTimersActive()) {
                     await interaction.editReply({
-                        content: 'Already shutting down',
+                        content: uiText.commands.AlreadyShuttingDown,
                         ephemeral: false
                     });
                     return;
                 }
 
-                const mins = interaction.options.getNumber('minutes');
-                const minsText = `${mins} ${mins != 1 ? "minutes": "minute"}`;
-                const msg = inGameMsg.quit.intitalMessage.replace("{x}", minsText);
-                triggerCommand((rcon) => cmd.servermsg(rcon, msg));
-                log(`Shutting down in ${(mins * 60) * 1000}ms`);
                 await interaction.editReply({
-                    content: `Quitting in ${mins} ${mins != 1 ? "minutes": "minute"}`,
+                    content: uiText.commands.quit.in.reply(mins),
                     ephemeral: false
                 });
 
                 discordServerDisconnectingMessage(interaction.client, mins);
 
-                isRestarting.setRestartPending(ServerStatusEnum.Restarting);
-
-                timers.setShutdownTimers([
-                    ((mins * 60) * 1000) - (60000 * 10) > 0 ? 
-                        setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning10m))
-                        }, ((mins * 60) * 1000) - (60000 * 10))
-                    : null,
-                    ((mins * 60) * 1000) - (60000 * 5) > 0 ?
-                        setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning5m))
-                        }, ((mins * 60) * 1000) - (60000 * 5))
-                    : null,
-                    ((mins * 60) * 1000) - (60000 * 3)  > 0 ?
-                        setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning3m))
-                        }, ((mins * 60) * 1000) - (60000 * 3)) 
-                    : null,
-                    ((mins * 60) * 1000) - 60000 > 0 ?
-                        setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning1m))
-                        }, ((mins * 60) * 1000) - 60000)
-                    : null,
-                    ((mins * 60) * 1000) - 30000 > 0 ? 
-                        setTimeout(() => {
-                            triggerCommand((rcon) => cmd.servermsg(rcon, inGameMsg.quit.warning30s))
-                        }, ((mins * 60) * 1000) - 30000)
-                    : null,
-                    setTimeout(async () => {
-                        triggerCommand((rcon) => { cmd.quit(rcon); });
-                        restartConnectionNow();
-                        await interaction.followUp({
-                            content: 'Quitting',
-                            ephemeral: false
-                        });
-                        timers.clearShutdownTimers();
-                        isRestarting.setRestartPending(ServerStatusEnum.Online);
-                    }, (mins * 60) * 1000)
-                ]);
+                timers.shutdownIn(mins, async () => {
+                    restartConnectionNow();
+                    await interaction.followUp({
+                        content: uiText.commands.Quitting,
+                        ephemeral: false
+                    });
+                });
 
                 return;
             }
@@ -103,7 +67,7 @@ module.exports = {
                 cmd.quit(rconConnection);
                 restartConnectionNow();
                 await interaction.editReply({
-                    content: 'Quitting',
+                    content: uiText.commands.Quitting,
                     ephemeral: false
                 });
                 return;
@@ -117,14 +81,14 @@ module.exports = {
 
                     log("Cancelled server shutdown");
                     await interaction.editReply({
-                        content: "Cancelled server quit"
+                        content: uiText.commands.CancelledShutdown
                     });
 
                     isRestarting.setRestartPending(ServerStatusEnum.Online);
 
                 } else {
                     await interaction.editReply({
-                        content: "Nothing to cancel.",
+                        content: uiText.commands.NothingToCancel,
                         ephemeral: true
                     });
                 }
