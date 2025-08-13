@@ -44,6 +44,8 @@ module.exports = {
                     return;
                 }
 
+                const mins = interaction.options.getNumber('minutes');
+
                 await interaction.editReply({
                     content: uiText.commands.quit.in.reply(mins),
                     ephemeral: false
