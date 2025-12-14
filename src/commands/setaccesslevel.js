@@ -18,12 +18,13 @@ module.exports = {
                 .setDescription("Select access level")
                 .setRequired(true)
                 .addChoices(
-                    { name: 'Admin', value: 'Admin' },
-                    { name: 'Moderator', value: 'Moderator' },
-                    { name: 'Overseer', value: 'Overseer' },
-                    { name: 'GM', value: 'GM' },
-                    { name: 'Observer', value: 'Observer' },
-                    { name: 'Player', value: 'Player' }
+                    { name: 'Admin', value: 'admin' },
+                    { name: 'Moderator', value: 'moderator' },
+                    { name: 'GM', value: 'gm' },
+                    { name: 'Observer', value: 'observer' },
+                    { name: 'Priority', value: 'priority' },
+                    { name: 'User', value: 'user' },
+                    { name: 'Banned', value: 'banned' }
                 )
             )
             .setDefaultMemberPermissions(0),

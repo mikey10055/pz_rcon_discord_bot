@@ -82,6 +82,10 @@ class PersistentRconConnection {
             this.rcon.on("connect", () => {
                 this.clog("connect", "Start")
                 this.setState(RconState.Connected);
+
+                // keep alive
+                this.rcon._tcpSocket.setKeepAlive(true, 5000);
+                
             })
             this.rcon.on("auth", () => {
                 this.clog("Auth", "Start");
