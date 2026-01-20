@@ -37,6 +37,8 @@ const {
     COMMAND_SHOWOPTIONS_ENABLED,
     COMMAND_RELOADOPTIONS_ENABLED,
     COMMAND_STATUS_ENABLED,
+    
+    COMMAND_ADDSTEAMID_ENABLED,
 
     COMMAND_MESSAGE_ENABLED,
 
@@ -106,6 +108,12 @@ const getCommands = () => {
     if (COMMAND_ADDUSER_ENABLED === "true") {
         commands.push(
             getCommand("adduser")
+        );
+    }
+
+    if (COMMAND_ADDSTEAMID_ENABLED === "true") {
+        commands.push(
+            getCommand("addsteamid")
         );
     }
 
