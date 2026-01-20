@@ -25,6 +25,10 @@ const cmd = {
         connection.send(`adduser "${user}" "${pass}"`);
     },
 
+    addsteamid: (connection, steamid) => {
+        connection.send(`addsteamid "${steamid}"`);
+    },
+
     addvehicleplayer: (connection, vehicle, player) => {
         connection.send(`addvehicle "${vehicle}" "${player}"`)
     },
